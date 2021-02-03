@@ -167,11 +167,9 @@ char *recv_url(int sockfd) {
           if (p_end) have_params = p_end;
         }
         L_INFOF("Rewritten URL: %s", url_found);
-        memcpy(have_params, "\r\n\r\n\0", 5);
       } else {
         L_INFOF("Kept original URL: %s", url_found);
       }
-
       free(buf);
       return url_found;
     }
@@ -254,6 +252,8 @@ void *fetch_b23tv(void *args_) {
     strcpy(args.info->buf, "HTTP/1.1 302 Found\r\nLocation: ");
     size_t curr_len = strlen(args.info->buf);
     strcpy(args.info->buf + curr_len, prepared_response);
+    curr_len += strlen(prepared_response);
+    memcpy(args.info->buf + curr_len, "\r\n\r\n\0", 5);
     L_INFOF("Responded fd=%d 302 Found", args.info->connfd);
   } else {
     strcpy(args.info->buf, "HTTP/1.1 400 Bad Request\r\n\r\n");

@@ -1,4 +1,4 @@
 #!/bin/bash
 while true; do
-  ./b23_broker 80
+  sudo ./backend/b23_broker 80
 done
