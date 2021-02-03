@@ -166,6 +166,7 @@ char *recv_url(int sockfd) {
           char *p_end = strchr(has_p, '&');
           if (p_end) have_params = p_end;
         }
+        *have_params = '\0';
         L_INFOF("Rewritten URL: %s", url_found);
       } else {
         L_INFOF("Kept original URL: %s", url_found);
