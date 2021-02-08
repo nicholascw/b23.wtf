@@ -250,7 +250,9 @@ void *fetch_b23tv(void *args_) {
   char *prepared_response = recv_url(sockfd);
   close(sockfd);
   if (prepared_response) {
-    strcpy(args.info->buf, "HTTP/1.1 302 Found\r\nLocation: ");
+    strcpy(args.info->buf, "HTTP/1.1 302 Found\r\n"
+                           "Cache-Control: public, max-age=31536000\r\n"
+                           "Location: ");
     size_t curr_len = strlen(args.info->buf);
     strcpy(args.info->buf + curr_len, prepared_response);
     curr_len += strlen(prepared_response);
@@ -429,9 +431,9 @@ int main(int argc, char **argv) {
 
             if (strcasestr(this_conn->buf, "GET ") != this_conn->buf) {
               strcpy(this_conn->buf,
-                     "HTTP/1.1 405 Method Not Allowed\r\n"
+                     "HTTP/1.1 501 Not Implemented\r\n"
                      "Allow: GET\r\n\r\n");
-              L_INFOF("Responded fd=%d 405 Method Not Allowed", this_evfd);
+              L_INFOF("Responded fd=%d 501 Not Implemented", this_evfd);
               this_conn->len = strlen(this_conn->buf);
               this_conn->filefd = -1;
             } else {
