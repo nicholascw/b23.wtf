@@ -87,11 +87,10 @@ void slow_print_log(loglevel_t lvl, const char *func_name, const char *err_strin
     if(!strftime((char *) &str_time, sizeof(str_time), "%FT%T%z", &curr_tm))
         fprintf(stderr, "strftime() failed.\n");
     //[Debug] 2020-07-08 03:27:36 CDT
-    (setted_lvl != DBG) ? fprintf(stderr, "%s%s%s%s: %s(): %s\n",
-                                  str_lvl, colors[0], str_time, colors[5], func_name, err_string)
-                        : fprintf(stderr, "%s%s%s%s: %s:%d: %s(): %s\n",
-                                  str_lvl, colors[0], str_time, colors[5], src_name,
-                                  lineno, func_name, err_string);
+    (setted_lvl != DBG) ? fprintf(stderr, "%s %s(): %s\n",
+                                  str_lvl, func_name, err_string)
+                        : fprintf(stderr, "%s %s:%d:%s(): %s\n",
+                                  str_lvl, src_name, lineno, func_name, err_string);
 }
 
 void slow_perror_log(const char *func_name, const char *src_name, const unsigned int lineno) {

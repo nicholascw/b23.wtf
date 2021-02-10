@@ -1,7 +1,7 @@
 # Maintainer:  Nicholas Wang <me#nicho1as.wang>
 
 pkgname=b23wtf
-pkgver=20210208
+pkgver=20210210
 pkgrel=1
 pkgdesc="Service for removing tracing information from b23.tv"
 arch=('x86_64')
