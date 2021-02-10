@@ -1,0 +1,20 @@
+[Unit]
+Description=b23.wtf backend
+After=network.target
+
+[Service]
+Type=simple
+User=nobody
+Group=nobody
+WorkingDirectory=/usr/share/b23wtf
+ExecStart=/usr/bin/b23wtf 80
+AmbientCapabilities=CAP_NET_BIND_SERVICE
+#CapabilityBoundingSet=CAP_NET_BIND_SERVICE
+#Capabilities=CAP_NET_BIND_SERVICE+ep
+Restart=on-failure
+RestartSec=5
+StartLimitInterval=400
+StartLimitBurst=3
+
+[Install]
+WantedBy=multi-user.target

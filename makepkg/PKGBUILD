@@ -1,0 +1,26 @@
+# Maintainer:  Nicholas Wang <me#nicho1as.wang>
+
+pkgname=b23wtf
+pkgver=20210208
+pkgrel=1
+pkgdesc="Service for removing tracing information from b23.tv"
+arch=('x86_64')
+source=('b23.wtf::git+https://github.com/nicholascw/b23.wtf#branch=master')
+license=('GPL3')
+sha1sums=('SKIP')
+
+pkgver() {
+  cd ${srcdir}/b23.wtf
+  git log -1 --format="%cd" --date=short | sed 's|-||g'
+}
+
+build() {
+  cd ${srcdir}/b23.wtf/backend
+  make
+}
+
+package() {
+  install -Dm755 ${srcdir}/b23.wtf/backend/b23_broker "${pkgdir}"/usr/bin/b23wtf
+  install -Dm644 ${srcdir}/b23.wtf/index.html "${pkgdir}"/usr/share/b23wtf/index.html
+  install -Dm644 ${srcdir}/b23.wtf/b23wtf.service "${pkgdir}"/usr/lib/systemd/system/b23wtf.service
+}
