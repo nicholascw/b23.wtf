@@ -92,7 +92,7 @@ ssize_t recv_line(int sockfd, char *buf, size_t bufsize) {
   ssize_t ret = 0;
   do {
     ptr += ret;
-    if (ptr - buf > bufsize) return -1;
+    if (ptr - buf > (ssize_t)bufsize) return -1;
     ret = recv(sockfd, ptr, 1, 0);
     if (ret < 0) {
       if (errno == EINTR) {
@@ -164,9 +164,12 @@ char *recv_url(int sockfd) {
         char *has_p = strstr(have_params, "?p=");
         if (has_p) {
           char *p_end = strchr(has_p, '&');
-          if (p_end) have_params = p_end;
+          if (p_end)
+            have_params = p_end;
+          else
+            have_params = NULL;
         }
-        *have_params = '\0';
+        if (have_params) *have_params = '\0';
         L_INFOF("Rewritten URL: %s", url_found);
       } else {
         L_INFOF("Kept original URL: %s", url_found);
@@ -250,9 +253,10 @@ void *fetch_b23tv(void *args_) {
   char *prepared_response = recv_url(sockfd);
   close(sockfd);
   if (prepared_response) {
-    strcpy(args.info->buf, "HTTP/1.1 302 Found\r\n"
-                           "Cache-Control: public, max-age=31536000\r\n"
-                           "Location: ");
+    strcpy(args.info->buf,
+           "HTTP/1.1 302 Found\r\n"
+           "Cache-Control: public, max-age=31536000\r\n"
+           "Location: ");
     size_t curr_len = strlen(args.info->buf);
     strcpy(args.info->buf + curr_len, prepared_response);
     curr_len += strlen(prepared_response);
