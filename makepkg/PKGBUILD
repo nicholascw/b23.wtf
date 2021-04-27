@@ -1,7 +1,7 @@
 # Maintainer:  Nicholas Wang <me#nicho1as.wang>
 
 pkgname=b23wtf
-pkgver=20210210
+pkgver=20210427
 pkgrel=1
 pkgdesc="Service for removing tracing information from b23.tv"
 arch=('x86_64')
@@ -15,6 +15,12 @@ pkgver() {
 }
 
 build() {
+  cd ${srcdir}/b23.wtf/
+  echo 'cat > ./index.html <<-EOL' > ./tmp.sh
+  cat ./index.html >> ./tmp.sh
+  echo 'EOL' >> ./tmp.sh
+  bash ./tmp.sh
+  rm ./tmp.sh
   cd ${srcdir}/b23.wtf/backend
   make
 }
