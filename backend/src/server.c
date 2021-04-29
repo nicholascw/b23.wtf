@@ -286,7 +286,7 @@ int main(int argc, char **argv) {
   int rv;
 
   memset(&hints, 0, sizeof hints);
-  hints.ai_family = AF_UNSPEC;
+  hints.ai_family = AF_INET6;
   hints.ai_socktype = SOCK_STREAM;
   hints.ai_flags = AI_PASSIVE;  // use my IP
 
