@@ -202,7 +202,7 @@ void *fetch_b23tv(void *args_) {
   hints.ai_family = AF_UNSPEC;
   hints.ai_socktype = SOCK_STREAM;
 
-  if ((rv = getaddrinfo("b23.tv", "80", &hints, &servinfo)) != 0) {
+  if ((rv = getaddrinfo("bili2233.cn", "80", &hints, &servinfo)) != 0) {
     L_ERRF("getaddrinfo: %s", gai_strerror(rv));
     return NULL;
   }
@@ -240,7 +240,7 @@ void *fetch_b23tv(void *args_) {
   }
   snprintf(buf, MAXDATASIZE,
            "GET %s HTTP/1.1\r\n"
-           "Host: b23.tv\r\n"
+           "Host: bili2233.cn\r\n"
            "Connection: close\r\n"
            "Accept: */*\r\n\r\n",
            args.url);
