@@ -87,6 +87,42 @@ ssize_t recvall(int sockfd, void *buffer, size_t length) {
   return recved;
 }
 
+char *urldecode(const char *str) {
+  if (!str) {
+    L_ERR("str = NULL");
+    return NULL;
+  }
+  size_t len = strlen(str);
+  if (len < 3) {
+    L_INFO("No need to escape.");
+    return strdup(str);
+  }
+  char *new_str = calloc(sizeof(char), len + 1);
+  if (!new_str) {
+    L_PERROR();
+    L_ERR("Failed to allocate temporary array.")
+    return NULL;
+  }
+  char to_escape[3] = {0, 0, 0};
+  size_t last_cpy_dst = 0, last_cpy_src = 0;
+  for (size_t i = 0; i < len - 2; i++) {
+    if (str[i] == '%') {
+      strncpy(to_escape, str + i + 1, 2);
+      strncpy(new_str + last_cpy_dst, str + last_cpy_src, i - last_cpy_src);
+      last_cpy_dst += i - last_cpy_src + 1;
+      last_cpy_src = i + 3;
+      dbg(last_cpy_src);
+      dbg(last_cpy_dst);
+      unsigned int x;
+      sscanf(to_escape, "%x", &x);
+      new_str[last_cpy_dst - 1]= (char)x;
+      dbg(new_str);
+    }
+  }
+  strncpy(new_str + last_cpy_dst, str + last_cpy_src, len - last_cpy_src);
+  return new_str;
+}
+
 ssize_t recv_line(int sockfd, char *buf, size_t bufsize) {
   char *ptr = buf;
   ssize_t ret = 0;
@@ -122,46 +158,80 @@ char *recv_url(int sockfd) {
     return NULL;
   }
   char *spliter;
-  if ((spliter = strchr(buf, ' '))) {
-    char tmp[20];
-    memset(tmp, 0, 20);
-    strncpy(tmp, spliter + 1, strchr(spliter, '\r') - spliter - 1);
-    L_INFOF("Server responsed: %s", tmp);
-    if (!(strcasestr(spliter, "302 Found") ||
-          strcasestr(spliter, "301 Moved Permanently"))) {
+  if (!(spliter = strchr(buf, ' '))) {
+    L_ERR("Invalid HTTP Response.\n");
+    free(buf);
+    return NULL;
+  }
+  char tmp[20];
+  memset(tmp, 0, 20);
+  strncpy(tmp, spliter + 1, strchr(spliter, '\r') - spliter - 1);
+  L_INFOF("Server responsed: %s", tmp);
+  if (!(strcasestr(spliter, "302 Found") ||
+        strcasestr(spliter, "301 Moved Permanently"))) {
+    free(buf);
+    return NULL;
+  }
+  ret = 0;
+  while (!strstr(ptr - 2, "\r\n\r\n")) {
+    ptr += ret;
+    ret = recv_line(sockfd, ptr, MAXDATASIZE - (buf - ptr));
+    if (ret < 0) {
       free(buf);
       return NULL;
     }
-    ret = 0;
-    while (!strstr(ptr - 2, "\r\n\r\n")) {
-      ptr += ret;
-      ret = recv_line(sockfd, ptr, MAXDATASIZE - (buf - ptr));
-      if (ret < 0) {
+    if (strcasestr(ptr, "Location:")) {
+      char *url_start = strcasestr(ptr + strlen("Location:"), "http");
+      if (!url_start) {
         free(buf);
         return NULL;
       }
-      if (strcasestr(ptr, "Location:")) {
-        char *url_start = strcasestr(ptr + strlen("Location:"), "http");
-        if (!url_start) {
-          free(buf);
-          return NULL;
+      int url_len = strchr(url_start, '\r') - url_start;
+      if (url_len <= 0) {
+        free(buf);
+        return NULL;
+      }
+      url_found = strndup(url_start, url_len);
+      L_INFOF("URL captured: %s", url_found);
+      break;
+    }
+  }
+  ptr += ret;
+  L_DEBUGF("Header Length read: %ld bytes", (ptr - buf));
+  if (url_found) {
+    char *hostname = NULL, *hostname_end = NULL;
+    if (!(hostname = strstr(url_found, "://"))) {
+      L_ERR("Invalid HTTP Response.\n");
+      free(buf);
+      return NULL;
+    }
+    hostname += 3;
+    if (!(hostname_end = strchr(hostname, '/'))) {
+      L_ERR("Invalid HTTP Response.\n");
+      free(buf);
+      return NULL;
+    }
+    hostname = strndup(hostname, hostname_end - hostname);
+    if (!strcmp(hostname, "d.bilibili.com")) {
+      // issue #1: fix handle share_source_ugc_download
+      char *real_location = strcasestr(url_found, "preUrl=");
+      if (real_location) {
+        real_location += 7;
+        char *real_location_end = strchr(real_location, '&');
+        if(real_location_end) *real_location_end= '\0';
+        char *new_url = urldecode(real_location);
+        if(!new_url) {
+          L_ERR("Unexpected urldecode() failure.");
+        } else {
+          free(url_found);
+          url_found = new_url;
         }
-        int url_len = strchr(url_start, '\r') - url_start;
-        if (url_len <= 0) {
-          free(buf);
-          return NULL;
-        }
-        url_found = strndup(url_start, url_len);
-        L_INFOF("URL captured: %s", url_found);
-        break;
       }
     }
-    ptr += ret;
-    L_DEBUGF("Header Length read: %ld bytes", (ptr - buf));
-    if (url_found) {
-      char *have_params = strchr(url_found, '?');
+    char *have_params = strchr(url_found, '?');
       if (have_params) {
         char *has_p = strstr(have_params, "?p=");
+        if(!has_p) has_p = strstr(have_params, "?page=");
         if (has_p) {
           char *p_end = strchr(has_p, '&');
           if (p_end)
@@ -176,11 +246,7 @@ char *recv_url(int sockfd) {
       }
       free(buf);
       return url_found;
-    }
-  } else {
-    L_ERR("Invalid HTTP Response.\n");
-    free(buf);
-    return NULL;
+    free(hostname);
   }
   free(buf);
   return NULL;
