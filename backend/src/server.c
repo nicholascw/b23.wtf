@@ -498,11 +498,11 @@ int main(int argc, char **argv) {
               }
               continue;
             }
-
-            if (strcasestr(this_conn->buf, "GET ") != this_conn->buf) {
+            if (strcasestr(this_conn->buf, "GET ") != this_conn->buf &&
+                strcasestr(this_conn->buf, "HEAD ") != this_conn->buf) {
               strcpy(this_conn->buf,
                      "HTTP/1.1 501 Not Implemented\r\n"
-                     "Allow: GET\r\n\r\n");
+                     "Allow: GET, HEAD\r\n\r\n");
               L_INFOF("Responded fd=%d 501 Not Implemented", this_evfd);
               this_conn->len = strlen(this_conn->buf);
               this_conn->filefd = -1;
