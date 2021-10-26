@@ -115,7 +115,7 @@ char *urldecode(const char *str) {
       dbg(last_cpy_dst);
       unsigned int x;
       sscanf(to_escape, "%x", &x);
-      new_str[last_cpy_dst - 1]= (char)x;
+      new_str[last_cpy_dst - 1] = (char)x;
       dbg(new_str);
     }
   }
@@ -141,6 +141,37 @@ ssize_t recv_line(int sockfd, char *buf, size_t bufsize) {
     }
   } while (!strstr(buf, "\r\n"));
   return (ptr - buf) + ret;
+}
+
+bool is_whitelist_param(char *param) {
+  if(strstr(param, "p=") == param) return true;
+  if(strstr(param, "page=") == param) return true;
+  if(strstr(param, "t=") == param) return true;
+  if(strstr(param, "itemsId=") == param) return true;
+  if(strstr(param, "tab=") == param) return true;
+  return false;
+}
+
+int generic_params_filter(char *str_params) {
+  char *ptr = str_params+1, *saveptr = str_params+1;
+  char *new_param_list = malloc(strlen(str_params));
+  if(!new_param_list) {L_PERROR (); goto err;}
+  char *writeptr = new_param_list;
+  while ((ptr=strtok_r(saveptr, "&", &saveptr))){
+    if(is_whitelist_param(ptr)) {
+      if(writeptr != new_param_list) {
+        *writeptr = '&';
+        writeptr++;
+      }
+      memcpy(writeptr, ptr, strlen(ptr));
+      writeptr += strlen(ptr);
+    }
+  }
+  *writeptr='\0';
+  memcpy(str_params+1, new_param_list, writeptr-new_param_list+1);
+  return 0;
+err:
+  return 1;
 }
 
 char *recv_url(int sockfd) {
@@ -218,9 +249,9 @@ char *recv_url(int sockfd) {
       if (real_location) {
         real_location += 7;
         char *real_location_end = strchr(real_location, '&');
-        if(real_location_end) *real_location_end= '\0';
+        if (real_location_end) *real_location_end = '\0';
         char *new_url = urldecode(real_location);
-        if(!new_url) {
+        if (!new_url) {
           L_ERR("Unexpected urldecode() failure.");
         } else {
           free(url_found);
@@ -229,23 +260,14 @@ char *recv_url(int sockfd) {
       }
     }
     char *have_params = strchr(url_found, '?');
-      if (have_params) {
-        char *has_p = strstr(have_params, "?p=");
-        if(!has_p) has_p = strstr(have_params, "?page=");
-        if (has_p) {
-          char *p_end = strchr(has_p, '&');
-          if (p_end)
-            have_params = p_end;
-          else
-            have_params = NULL;
-        }
-        if (have_params) *have_params = '\0';
-        L_INFOF("Rewritten URL: %s", url_found);
-      } else {
-        L_INFOF("Kept original URL: %s", url_found);
-      }
-      free(buf);
-      return url_found;
+    if (have_params) {
+      if (generic_params_filter(have_params)) *have_params = '\0';
+      L_INFOF("Rewritten URL: %s", url_found);
+    } else {
+      L_INFOF("Kept original URL: %s", url_found);
+    }
+    free(buf);
+    return url_found;
     free(hostname);
   }
   free(buf);
@@ -553,7 +575,8 @@ int main(int argc, char **argv) {
                       this_conn->filefd = -1;
                       strcpy(this_conn->buf, "HTTP/1.1 403 Forbidden\r\n\r\n");
                       L_INFOF(
-                          "Responded fd=%d 403 Forbidden due to is requesting "
+                          "Responded fd=%d 403 Forbidden due to is "
+                          "requesting "
                           "a directory",
                           this_evfd);
                       this_conn->len = strlen(this_conn->buf);
