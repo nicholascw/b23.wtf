@@ -144,22 +144,25 @@ ssize_t recv_line(int sockfd, char *buf, size_t bufsize) {
 }
 
 bool is_whitelist_param(char *param) {
-  if(strstr(param, "p=") == param) return true;
-  if(strstr(param, "page=") == param) return true;
-  if(strstr(param, "t=") == param) return true;
-  if(strstr(param, "itemsId=") == param) return true;
-  if(strstr(param, "tab=") == param) return true;
+  if (strstr(param, "p=") == param) return true;
+  if (strstr(param, "page=") == param) return true;
+  if (strstr(param, "t=") == param) return true;
+  if (strstr(param, "itemsId=") == param) return true;
+  if (strstr(param, "tab=") == param) return true;
   return false;
 }
 
 int generic_params_filter(char *str_params) {
-  char *ptr = str_params+1, *saveptr = str_params+1;
+  char *ptr = str_params + 1, *saveptr = str_params + 1;
   char *new_param_list = malloc(strlen(str_params));
-  if(!new_param_list) {L_PERROR (); goto err;}
+  if (!new_param_list) {
+    L_PERROR();
+    goto err;
+  }
   char *writeptr = new_param_list;
-  while ((ptr=strtok_r(saveptr, "&", &saveptr))){
-    if(is_whitelist_param(ptr)) {
-      if(writeptr != new_param_list) {
+  while ((ptr = strtok_r(saveptr, "&", &saveptr))) {
+    if (is_whitelist_param(ptr)) {
+      if (writeptr != new_param_list) {
         *writeptr = '&';
         writeptr++;
       }
@@ -167,8 +170,8 @@ int generic_params_filter(char *str_params) {
       writeptr += strlen(ptr);
     }
   }
-  *writeptr='\0';
-  memcpy(str_params+1, new_param_list, writeptr-new_param_list+1);
+  *writeptr = '\0';
+  memcpy(str_params + 1, new_param_list, writeptr - new_param_list + 1);
   return 0;
 err:
   return 1;
@@ -325,6 +328,24 @@ void *fetch_b23tv(void *args_) {
   if (!buf) {
     L_PERROR();
     return NULL;
+  }
+  if (strstr(args.url, "/api?full=") == args.url) {
+    char *decoded_url = urldecode(args.url);
+    if (decoded_url) {
+      char *hostname_in_full = strcasestr(decoded_url, "b23.tv/");
+      if (!hostname_in_full)
+        hostname_in_full = strcasestr(decoded_url, "bili2233.cn/");
+      char *real_get_location;
+      if (hostname_in_full) {
+        real_get_location = strchr(hostname_in_full, '/');
+      } else {
+        real_get_location = strrchr(decoded_url, '/');
+      }
+      if (real_get_location && strlen(real_get_location) > 1 &&
+          strlen(real_get_location) <= strlen(args.url))
+        strcpy(args.url, real_get_location);
+      free(decoded_url);
+    }
   }
   snprintf(buf, MAXDATASIZE,
            "GET %s HTTP/1.1\r\n"
