@@ -264,7 +264,8 @@ char *recv_url(int sockfd) {
     }
     char *have_params = strchr(url_found, '?');
     if (have_params) {
-      if (generic_params_filter(have_params)) *have_params = '\0';
+      if (generic_params_filter(have_params) || strlen(have_params) == 1)
+        *have_params = '\0';
       L_INFOF("Rewritten URL: %s", url_found);
     } else {
       L_INFOF("Kept original URL: %s", url_found);
