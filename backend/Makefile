@@ -1,5 +1,7 @@
 COMPILERFLAGS = -O2 -fPIC -Wall -Wextra -pthread
+DBGFLAGS = -g -DDEBUG
 SERVEROBJECTS = obj/server.o
+LINKLIBS=
 .PHONY: all clean
 
 all : obj b23_broker
@@ -7,8 +9,11 @@ all : obj b23_broker
 b23_broker: $(SERVEROBJECTS)
 	$(CC) $(COMPILERFLAGS) $^ -o $@ $(LINKLIBS)
 
-clean :
-	$(RM) vgcore.* obj/*.o b23_broker
+b23_broker_dbg: $(SERVEROBJECTS)
+	$(CC) $(DBGFLAGS) $(COMPILERFLAGS) $^ -o $@ $(LINKLIBS)
+
+clean:
+	$(RM) vgcore.* obj/*.o b23_broker b23_broker_dbg
 
 obj/%.o: src/%.c
 	$(CC) $(COMPILERFLAGS) -c -o $@ $<
