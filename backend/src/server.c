@@ -149,6 +149,7 @@ bool is_whitelist_param(char *param) {
   if (strstr(param, "t=") == param) return true;
   if (strstr(param, "itemsId=") == param) return true;
   if (strstr(param, "tab=") == param) return true;
+  if (strstr(param, "topic_id=") == param) return true;
   return false;
 }
 
