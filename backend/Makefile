@@ -1,4 +1,4 @@
-COMPILERFLAGS = -O2 -fPIC -Wall -Wextra -lpthread
+COMPILERFLAGS = -O2 -fPIC -Wall -Wextra -pthread
 SERVEROBJECTS = obj/server.o
 .PHONY: all clean
 
