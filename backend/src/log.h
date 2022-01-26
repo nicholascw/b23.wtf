@@ -1,12 +1,5 @@
 /*
- * This file is adapted exclusively for CS438 MPs, from part of the
- * SLOWProxy distribution (https://github.com/nicholascw/SLOWProxy).
  * Copyright (C) 2020 Nicholas Wang
- *
- *    ==== NOTICE to CS438 Grading Instructor ====
- * This file is authored by the one submitting this MP solution, and the
- * original open-sourced copy is signed with the same GPG key.
- *    ============ End of the Notice =============
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
