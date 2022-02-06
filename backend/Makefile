@@ -4,7 +4,7 @@ SERVEROBJECTS = obj/server.o
 LINKLIBS=
 .PHONY: all clean
 
-all : obj b23_broker
+all : b23_broker
 
 b23_broker: $(SERVEROBJECTS)
 	$(CC) $(COMPILERFLAGS) $^ -o $@ $(LINKLIBS)
@@ -16,7 +16,6 @@ clean:
 	$(RM) vgcore.* obj/*.o b23_broker b23_broker_dbg
 
 obj/%.o: src/%.c
+	mkdir -p $(@D)
 	$(CC) $(COMPILERFLAGS) -c -o $@ $<
-obj:
-	mkdir -p obj
 
