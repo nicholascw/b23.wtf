@@ -367,6 +367,7 @@ void *fetch_b23tv(void *args_) {
   if (prepared_response) {
     strcpy(args.info->buf,
            "HTTP/1.1 302 Found\r\n"
+           "Referrer-Policy: no-referrer\r\n"
            "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n"
            "Location: ");
     size_t curr_len = strlen(args.info->buf);
