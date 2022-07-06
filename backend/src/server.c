@@ -248,6 +248,7 @@ char *recv_url(int sockfd) {
       return NULL;
     }
     hostname = strndup(hostname, hostname_end - hostname);
+    int is_taobao = 0;
     if (!strcmp(hostname, "d.bilibili.com")) {
       // issue #1: fix handle share_source_ugc_download
       char *real_location = strcasestr(url_found, "preUrl=");
@@ -265,12 +266,12 @@ char *recv_url(int sockfd) {
       }
     } else if (!strcmp(hostname, "s.click.taobao.com")) {
       // issue #9: b23.tv/mall- => s.click.taobao.com
-      char *new_url = taobao_fetcher(url_found);
-      free(url_found);
-
+      // char *new_url = taobao_fetcher(url_found);
+      // free(url_found);
+      is_taobao = 1;
     }
     char *have_params = strchr(url_found, '?');
-    if (have_params) {
+    if (have_params && !is_taobao) {
       if (generic_params_filter(have_params) || strlen(have_params) == 1)
         *have_params = '\0';
       L_INFOF("Rewritten URL: %s", url_found);
