@@ -263,6 +263,11 @@ char *recv_url(int sockfd) {
           url_found = new_url;
         }
       }
+    } else if (!strcmp(hostname, "s.click.taobao.com")) {
+      // issue #9: b23.tv/mall- => s.click.taobao.com
+      char *new_url = taobao_fetcher(url_found);
+      free(url_found);
+
     }
     char *have_params = strchr(url_found, '?');
     if (have_params) {
@@ -376,7 +381,7 @@ void *fetch_b23tv(void *args_) {
     memcpy(args.info->buf + curr_len, "\r\n\r\n\0", 5);
     L_INFOF("Responded fd=%d 302 Found", args.info->connfd);
   } else {
-    strcpy(args.info->buf, "HTTP/1.1 400 Bad Request\r\n\r\n");
+    strcpy(args.info->buf, "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- b23.wtf\r\n");
     L_INFOF("Responded fd=%d 400 Bad Request", args.info->connfd);
   }
   args.info->len = strlen(args.info->buf);
@@ -561,7 +566,7 @@ int main(int argc, char **argv) {
               first_sp = strchr(this_conn->buf, ' ');
               last_sp = strrchr(this_conn->buf, ' ');
               if (!first_sp || !last_sp || first_sp == last_sp) {
-                strcpy(this_conn->buf, "HTTP/1.1 400 Bad Request\r\n\r\n");
+                strcpy(this_conn->buf, "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- b23.wtf\r\n");
                 L_INFOF("Responded fd=%d 400 Bad Request", this_evfd);
                 this_conn->len = strlen(this_conn->buf);
                 this_conn->filefd = -1;
@@ -584,7 +589,7 @@ int main(int argc, char **argv) {
                       this_conn->filefd = -1;
                     } else {
                       strcpy(this_conn->buf,
-                             "HTTP/1.1 400 Bad Request\r\n\r\n");
+                             "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- b23.wtf\r\n");
                       L_INFOF("Responded fd=%d 400 Bad Request", this_evfd);
                       this_conn->len = strlen(this_conn->buf);
                       this_conn->filefd = -1;
@@ -627,7 +632,7 @@ int main(int argc, char **argv) {
                         L_ERR("error when generating header");
                         close(file_ret);
                         strcpy(this_conn->buf,
-                               "HTTP/1.1 400 Bad Request\r\n\r\n");
+                               "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- b23.wtf\r\n");
                         L_INFOF("Responded fd=%d 400 Bad Request", this_evfd);
                         this_conn->len = strlen(this_conn->buf);
                         this_conn->filefd = -1;
