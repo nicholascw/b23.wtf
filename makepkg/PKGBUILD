@@ -8,7 +8,7 @@ arch=('x86_64')
 source=('b23.wtf::git+https://github.com/nicholascw/b23.wtf#branch=master')
 license=('GPL3')
 sha1sums=('SKIP')
-
+backup=(usr/share/b23wtf/index.html)
 pkgver() {
   cd ${srcdir}/b23.wtf
   git log -1 --format="%cd" --date=short | sed 's|-||g'
