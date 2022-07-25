@@ -338,7 +338,9 @@ void *fetch_b23tv(void *args_) {
     L_PERROR();
     return NULL;
   }
+  int is_api = 0;
   if (strstr(args.url, "/api?full=") == args.url) {
+    is_api = 1;
     char *decoded_url = urldecode(args.url);
     if (decoded_url) {
       char *hostname_in_full = strcasestr(decoded_url, "b23.tv/");
@@ -371,69 +373,87 @@ void *fetch_b23tv(void *args_) {
   char *prepared_response = recv_url(sockfd);
   close(sockfd);
   if (prepared_response) {
-    snprintf(
-        args.info->buf, PIPE_BUF,
-        "HTTP/1.1 200 OK\r\n"
-        "Referrer-Policy: no-referrer\r\n"
-        "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n\r\n"
-        "<html><head><meta charset=\"gbk\"><meta name=\"viewport\" "
-        "content=\"width=device-width, "
-        "initial-scale=1\"> <title>b23.wtf</title> <link rel=\"stylesheet\" "
-        "href=\"https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/"
-        "bootstrap.min.css\" "
-        "integrity=\"sha384-Gn5384xqQ1aoWXA+"
-        "058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm\" "
-        "crossorigin=\"anonymous\"> <link rel=\"icon\" type=\"image/x-icon\" "
-        "href=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/master/"
-        "favicon.ico\"> <link rel=\"icon\" type=\"image/png\" "
-        "href=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/master/"
-        "favicon.png\"> <meta name=\"theme-color\" content=\"#7952b3\"> <meta "
-        "property=\"og:image\" "
-        "content=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/master/"
-        "demo.png\"> <meta property=\"og:title\" content=\"bilibili "
-        "短链接追踪信息解决方案\"> <style>.bd-placeholder-img{font-size: "
-        "1.125rem; text-anchor: middle; -webkit-user-select: none; "
-        "-moz-user-select: none; user-select: none;}@media (min-width: "
-        "768px){.bd-placeholder-img-lg{font-size: 3.5rem;}}</style> "
-        "<style>.btn-secondary, .btn-secondary:hover, "
-        ".btn-secondary:focus{text-shadow: none;}body{text-shadow: 0 .05rem "
-        ".1rem rgba(0, 0, 0, .5); box-shadow: inset 0 0 5rem rgba(0, 0, 0, "
-        ".5);}.cover-container{max-width: 60em;}.nav-masthead "
-        ".nav-link{padding: .25rem 0; font-weight: 700; color: rgba(255, 255, "
-        "255, .5); background-color: transparent; border-bottom: .25rem solid "
-        "transparent;}.nav-masthead .nav-link:hover, .nav-masthead "
-        ".nav-link:focus{border-bottom-color: rgba(255, 255, 255, "
-        ".25);}.nav-masthead .nav-link + .nav-link{margin-left: "
-        "1rem;}.nav-masthead .active{color: #fff; border-bottom-color: "
-        "#fff;}</style></head><body class=\"d-flex h-100 text-center "
-        "text-white bg-dark\"> <script>function "
-        "c(){navigator.clipboard.writeText(\"%s\"); "
-        "document.getElementById(\"cc\").removeAttribute(\"hidden\")}</script> "
-        "<div class=\"cover-container d-flex w-100 h-100 p-3 mx-auto "
-        "flex-column\"> <header class=\"mb-auto\"> <div> <a "
-        "href=\"https://b23.wtf\"><h3 "
-        "class=\"float-md-start mb-0\"><img "
-        "src=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/master/"
-        "logo.png\" style=\"height:1em; postion:relative\"></a> b23.wtf</h3> "
-        "<nav "
-        "class=\"nav nav-masthead justify-content-center float-md-end\"> <a "
-        "class=\"nav-link\" href=\"https://status.b23.wtf\">服务状态</a> <a "
-        "class=\"nav-link\" "
-        "href=\"https://github.com/nicholascw/b23.wtf/issues/new\">错误报告</"
-        "a> </nav> </header> <main class=\"px-3\"> <h2>真实目的地址为</h2> "
-        "<div class=\"input-group input-group-lg\"> <input type=\"text\" "
-        "class=\"form-control\" value=\"%s\" id=\"x\" readonly> <div "
-        "class=\"input-group-append\"> <button class=\"btn btn-secondary\" "
-        "type=\"button\" onclick=\"c()\" id=\"c\">复制 <br><span class=\"badge "
-        "badge-success\" id=\"cc\" hidden>已复制</span></button> <a "
-        "class=\"btn btn-info\" href=\"%s\">前往</a> </div></div></main> "
-        "<footer class=\"mt-auto\"> <p>Powered by <a "
-        "href=\"https://www.nicholas.wang/\">Nicholas Wang</a>. Project "
-        "licensed under GPLv3. <a "
-        "href=\"https://github.com/nicholascw/b23.wtf\">Source</a> "
-        "</p></footer></div></body></html>",
-        prepared_response, prepared_response, prepared_response);
-    L_INFOF("Responded fd=%d 200 OK", args.info->connfd);
+    if (is_api) {
+      snprintf(
+          args.info->buf, PIPE_BUF,
+          "HTTP/1.1 302 Found\r\n"
+          "Referrer-Policy: no-referrer\r\n"
+          "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n"
+          "Location: %s\r\n\r\n",
+          prepared_response);
+      L_INFOF("Responded fd=%d 302 Found", args.info->connfd);
+    } else {
+      snprintf(
+          args.info->buf, PIPE_BUF,
+          "HTTP/1.1 200 OK\r\n"
+          "Referrer-Policy: no-referrer\r\n"
+          "Cache-Control: public, max-age=31536000, "
+          "stale-if-error=86400\r\n\r\n"
+          "<html><head><meta charset=\"gbk\"><meta name=\"viewport\" "
+          "content=\"width=device-width, "
+          "initial-scale=1\"> <title>b23.wtf</title> <link rel=\"stylesheet\" "
+          "href=\"https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/"
+          "bootstrap.min.css\" "
+          "integrity=\"sha384-Gn5384xqQ1aoWXA+"
+          "058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm\" "
+          "crossorigin=\"anonymous\"> <link rel=\"icon\" type=\"image/x-icon\" "
+          "href=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/master/"
+          "favicon.ico\"> <link rel=\"icon\" type=\"image/png\" "
+          "href=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/master/"
+          "favicon.png\"> <meta name=\"theme-color\" content=\"#7952b3\"> "
+          "<meta "
+          "property=\"og:image\" "
+          "content=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/"
+          "master/"
+          "demo.png\"> <meta property=\"og:title\" content=\"bilibili "
+          "短链接追踪信息解决方案\"> <style>.bd-placeholder-img{font-size: "
+          "1.125rem; text-anchor: middle; -webkit-user-select: none; "
+          "-moz-user-select: none; user-select: none;}@media (min-width: "
+          "768px){.bd-placeholder-img-lg{font-size: 3.5rem;}}</style> "
+          "<style>.btn-secondary, .btn-secondary:hover, "
+          ".btn-secondary:focus{text-shadow: none;}body{text-shadow: 0 .05rem "
+          ".1rem rgba(0, 0, 0, .5); box-shadow: inset 0 0 5rem rgba(0, 0, 0, "
+          ".5);}.cover-container{max-width: 60em;}.nav-masthead "
+          ".nav-link{padding: .25rem 0; font-weight: 700; color: rgba(255, "
+          "255, "
+          "255, .5); background-color: transparent; border-bottom: .25rem "
+          "solid "
+          "transparent;}.nav-masthead .nav-link:hover, .nav-masthead "
+          ".nav-link:focus{border-bottom-color: rgba(255, 255, 255, "
+          ".25);}.nav-masthead .nav-link + .nav-link{margin-left: "
+          "1rem;}.nav-masthead .active{color: #fff; border-bottom-color: "
+          "#fff;}</style></head><body class=\"d-flex h-100 text-center "
+          "text-white bg-dark\"> <script>function "
+          "c(){navigator.clipboard.writeText(\"%s\"); "
+          "document.getElementById(\"cc\").removeAttribute(\"hidden\")}</"
+          "script> "
+          "<div class=\"cover-container d-flex w-100 h-100 p-3 mx-auto "
+          "flex-column\"> <header class=\"mb-auto\"> <div> <a "
+          "href=\"https://b23.wtf\"><h3 "
+          "class=\"float-md-start mb-0\"><img "
+          "src=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/master/"
+          "logo.png\" style=\"height:1em; postion:relative\"></a> b23.wtf</h3> "
+          "<nav "
+          "class=\"nav nav-masthead justify-content-center float-md-end\"> <a "
+          "class=\"nav-link\" href=\"https://status.b23.wtf\">服务状态</a> <a "
+          "class=\"nav-link\" "
+          "href=\"https://github.com/nicholascw/b23.wtf/issues/new\">错误报告</"
+          "a> </nav> </header> <main class=\"px-3\"> <h2>真实目的地址为</h2> "
+          "<div class=\"input-group input-group-lg\"> <input type=\"text\" "
+          "class=\"form-control\" value=\"%s\" id=\"x\" readonly> <div "
+          "class=\"input-group-append\"> <button class=\"btn btn-secondary\" "
+          "type=\"button\" onclick=\"c()\" id=\"c\">复制 <br><span "
+          "class=\"badge "
+          "badge-success\" id=\"cc\" hidden>已复制</span></button> <a "
+          "class=\"btn btn-info\" href=\"%s\">前往</a> </div></div></main> "
+          "<footer class=\"mt-auto\"> <p>Powered by <a "
+          "href=\"https://www.nicholas.wang/\">Nicholas Wang</a>. Project "
+          "licensed under GPLv3. <a "
+          "href=\"https://github.com/nicholascw/b23.wtf\">Source</a> "
+          "</p></footer></div></body></html>",
+          prepared_response, prepared_response, prepared_response);
+      L_INFOF("Responded fd=%d 200 OK", args.info->connfd);
+    }
   } else {
     strcpy(args.info->buf,
            "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- b23.wtf\r\n");
