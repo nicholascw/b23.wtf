@@ -376,7 +376,7 @@ void *fetch_b23tv(void *args_) {
         "HTTP/1.1 200 OK\r\n"
         "Referrer-Policy: no-referrer\r\n"
         "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n\r\n"
-        "<html><head><meta charset=\"iso-8859-1\"><meta name=\"viewport\" "
+        "<html><head><meta charset=\"Unicode\"><meta name=\"viewport\" "
         "content=\"width=device-width, "
         "initial-scale=1\"> <title>b23.wtf</title> <link rel=\"stylesheet\" "
         "href=\"https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/"
