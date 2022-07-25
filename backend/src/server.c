@@ -371,18 +371,21 @@ void *fetch_b23tv(void *args_) {
   char *prepared_response = recv_url(sockfd);
   close(sockfd);
   if (prepared_response) {
-    strcpy(args.info->buf,
-           "HTTP/1.1 302 Found\r\n"
-           "Referrer-Policy: no-referrer\r\n"
-           "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n"
-           "Location: ");
-    size_t curr_len = strlen(args.info->buf);
-    strcpy(args.info->buf + curr_len, prepared_response);
-    curr_len += strlen(prepared_response);
-    memcpy(args.info->buf + curr_len, "\r\n\r\n\0", 5);
-    L_INFOF("Responded fd=%d 302 Found", args.info->connfd);
+    snprintf(
+        args.info->buf, PIPE_BUF,
+        "HTTP/1.1 200 OK\r\n"
+        "Referrer-Policy: no-referrer\r\n"
+        "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n\r\n"
+        "<html><body><script>function c(){var "
+        "x=document.getElementById(\"x\");x.select();x.setSelectionRange(0,"
+        "99999);navigator.clipboard.writeText(x.value);alert(\"Copied\");}</"
+        "script><input type=\"text\" value=\"%s\" id=\"x\" disabled><button "
+        "onclick=\"c()\">Copy</button><br><a href=\"%s\">%s</a></body></html>",
+        prepared_response, prepared_response, prepared_response);
+    L_INFOF("Responded fd=%d 200 OK", args.info->connfd);
   } else {
-    strcpy(args.info->buf, "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- b23.wtf\r\n");
+    strcpy(args.info->buf,
+           "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- b23.wtf\r\n");
     L_INFOF("Responded fd=%d 400 Bad Request", args.info->connfd);
   }
   args.info->len = strlen(args.info->buf);
@@ -567,7 +570,9 @@ int main(int argc, char **argv) {
               first_sp = strchr(this_conn->buf, ' ');
               last_sp = strrchr(this_conn->buf, ' ');
               if (!first_sp || !last_sp || first_sp == last_sp) {
-                strcpy(this_conn->buf, "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- b23.wtf\r\n");
+                strcpy(this_conn->buf,
+                       "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- "
+                       "b23.wtf\r\n");
                 L_INFOF("Responded fd=%d 400 Bad Request", this_evfd);
                 this_conn->len = strlen(this_conn->buf);
                 this_conn->filefd = -1;
@@ -590,7 +595,8 @@ int main(int argc, char **argv) {
                       this_conn->filefd = -1;
                     } else {
                       strcpy(this_conn->buf,
-                             "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- b23.wtf\r\n");
+                             "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request "
+                             "-- b23.wtf\r\n");
                       L_INFOF("Responded fd=%d 400 Bad Request", this_evfd);
                       this_conn->len = strlen(this_conn->buf);
                       this_conn->filefd = -1;
@@ -633,7 +639,8 @@ int main(int argc, char **argv) {
                         L_ERR("error when generating header");
                         close(file_ret);
                         strcpy(this_conn->buf,
-                               "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad Request -- b23.wtf\r\n");
+                               "HTTP/1.1 400 Bad Request\r\n\r\n400 Bad "
+                               "Request -- b23.wtf\r\n");
                         L_INFOF("Responded fd=%d 400 Bad Request", this_evfd);
                         this_conn->len = strlen(this_conn->buf);
                         this_conn->filefd = -1;
