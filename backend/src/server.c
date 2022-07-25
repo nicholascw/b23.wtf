@@ -414,7 +414,7 @@ void *fetch_b23tv(void *args_) {
         "href=\"https://b23.wtf\"><h3 "
         "class=\"float-md-start mb-0\"><img "
         "src=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/master/"
-        "logo.png\" style=\"height:1em; postion:relative\"> b23.wtf</h3></a> "
+        "logo.png\" style=\"height:1em; postion:relative\"></a> b23.wtf</h3> "
         "<nav "
         "class=\"nav nav-masthead justify-content-center float-md-end\"> <a "
         "class=\"nav-link\" href=\"https://status.b23.wtf\">·þÎñ×´Ì¬</a> <a "
