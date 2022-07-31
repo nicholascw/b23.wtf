@@ -41,6 +41,7 @@ int set_nonblk(int fd) {
 typedef struct conn_info {
   int connfd;
   int filefd;
+  int is_bot;
   unsigned short len;
   unsigned short offset;
   char buf[PIPE_BUF];
@@ -179,7 +180,7 @@ err:
   return 1;
 }
 
-char *recv_url(int sockfd) {
+char *recv_url(int sockfd, int *redir_flag) {
   char *buf = calloc(MAXDATASIZE, 1);
   if (!buf) {
     L_PERROR();
@@ -272,6 +273,9 @@ char *recv_url(int sockfd) {
     }
     char *have_params = strchr(url_found, '?');
     if (have_params && !is_taobao) {
+      if (strstr(have_params, "mid=") == NULL) {
+        *redir_flag = 1;
+      }
       if (generic_params_filter(have_params) || strlen(have_params) == 1)
         *have_params = '\0';
       L_INFOF("Rewritten URL: %s", url_found);
@@ -338,9 +342,9 @@ void *fetch_b23tv(void *args_) {
     L_PERROR();
     return NULL;
   }
-  int is_api = 0;
+  int auto_redirect = args.info->is_bot;
   if (strstr(args.url, "/api?full=") == args.url) {
-    is_api = 1;
+    auto_redirect = 1;
     char *decoded_url = urldecode(args.url);
     if (decoded_url) {
       char *hostname_in_full = strcasestr(decoded_url, "b23.tv/");
@@ -370,10 +374,10 @@ void *fetch_b23tv(void *args_) {
   }
   free(buf);
   buf = NULL;
-  char *prepared_response = recv_url(sockfd);
+  char *prepared_response = recv_url(sockfd, &auto_redirect);
   close(sockfd);
   if (prepared_response) {
-    if (is_api) {
+    if (auto_redirect) {
       snprintf(
           args.info->buf, PIPE_BUF,
           "HTTP/1.1 302 Found\r\n"
@@ -720,6 +724,7 @@ int main(int argc, char **argv) {
                   }
                 } else {
                   this_conn->filefd = -23232323;
+                  this_conn->is_bot = 0;
                   void *thread_args = malloc(sizeof(struct {
                     conn_info_t *info;
                     char *url;
@@ -732,6 +737,14 @@ int main(int argc, char **argv) {
                             this_evfd);
                     this_conn->len = strlen(this_conn->buf);
                     this_conn->filefd = -1;
+                  }
+                  char *ua;
+                  if ((ua = strcasestr(last_sp + 1, "User-Agent:"))) {
+                    char *ua_end = strchr(ua, '\n');
+                    if (ua_end) ua_end = '\0';
+                    if (strcasestr(ua, "bot") || strcasestr(ua, "curl") ||
+                        strcasestr(ua, "API"))
+                      this_conn->is_bot = 1;
                   }
                   memcpy(thread_args, &this_conn, sizeof(conn_info_t *));
                   memcpy(thread_args + sizeof(conn_info_t *), &first_sp,

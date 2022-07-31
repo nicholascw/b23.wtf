@@ -29,13 +29,13 @@
 #ifndef DBG_H
 #define DBG_H
 
-#include <stdint.h>
-#include <stdbool.h>
-#include <string.h>
-#include <stdio.h>
 #include <ctype.h>
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include <string.h>
 #ifdef __GLIBC__
-#    include <execinfo.h>
+#include <execinfo.h>
 #endif
 #include <stdlib.h>
 #include <unistd.h>
@@ -48,8 +48,8 @@
  * For primitive data types (int, float, etc.), strings and
  * pointers. Returns the result of given expression.
  */
-#    define dbg(expr)                                   \
-    _Generic((expr),                                    \
+#define dbg(expr) \
+  _Generic((expr),                                    \
              char: dbg_char,                            \
              signed char: dbg_schar,                    \
              unsigned char: dbg_uchar,                  \
@@ -77,8 +77,8 @@
  * For array of primitive data types. Returns the result of given
  * expression.
  */
-#    define dbga(expr, length)                                  \
-    _Generic((expr),                                            \
+#define dbga(expr, length) \
+  _Generic((expr),                                            \
              short *: dbg_short_p,                              \
              const short *: dbg_const_short_p,                  \
              unsigned short *: dbg_ushort_p,                    \
@@ -107,15 +107,14 @@
  * To force boolean true/false output. Returns the result of given
  * expression.
  */
-#    define dbgb(expr)                                  \
-    dbg_bool(__FILE__, __LINE__, __func__, #expr, expr)
+#define dbgb(expr) dbg_bool(__FILE__, __LINE__, __func__, #expr, expr)
 
 /**
  * Hexdump of given size at given address. Returns the result of given
  * expression.
  */
-#    define dbgh(expr, size)                                            \
-    _Generic((expr),                                                    \
+#define dbgh(expr, size) \
+  _Generic((expr),                                                    \
              char *: dbg_hexdump_char_p,                                \
              const char *: dbg_hexdump_const_char_p,                    \
              signed char *: dbg_hexdump_schar_p,                        \
@@ -148,399 +147,285 @@
 /**
  * For negative error codes. Returns the result of given expression.
  */
-#    define dbge(expr)                                          \
-    dbg_error(__FILE__, __LINE__, __func__, #expr, expr)
+#define dbge(expr) dbg_error(__FILE__, __LINE__, __func__, #expr, expr)
 #else
-#    define dbg(expr) (expr)
-#    define dbga(expr, length) (expr)
-#    define dbgb(expr) (expr)
-#    define dbgh(expr, size) (expr)
-#    define dbge(expr) (expr)
+#define dbg(expr) (expr)
+#define dbga(expr, length) (expr)
+#define dbgb(expr) (expr)
+#define dbgh(expr, size) (expr)
+#define dbge(expr) (expr)
 #endif
 
 /* Colorful output selection. */
 #ifndef DBG_NCOLOR
-#    define DBG_LOC "\x1b[02m"
-#    define DBG_EXPR "\x1b[0m\x1b[36m\x1b[1m"
-#    define DBG_VALUE "\x1b[01m"
-#    define DBG_RESET "\x1b[0m"
-#    define DBG_FORMAT(format)                          \
-    DBG_LOC "%s:%d: (%s) " DBG_EXPR "%s" DBG_RESET      \
-    " = " DBG_VALUE format "\n" DBG_RESET
-#    define DBG_FORMAT_HEX(format, hexformat)                   \
-    DBG_LOC "%s:%d: (%s) " DBG_EXPR "%s" DBG_RESET              \
-    " = " DBG_VALUE format " (0x" hexformat ")\n" DBG_RESET
-#    define DBG_FORMAT_ARRAY_BEGIN                                      \
-    DBG_LOC "%s:%d: (%s) " DBG_EXPR "%s" DBG_RESET " = " DBG_VALUE "["
-#    define DBG_FORMAT_ARRAY_END   "] (length: %u)\n" DBG_RESET
-#    define DBG_FORMAT_HEXDUMP_BEGIN                                    \
-    DBG_LOC "%s:%d: (%s) " DBG_EXPR "%s " DBG_RESET "(size: %u):\n" DBG_VALUE
-#    define DBG_FORMAT_HEXDUMP_END DBG_RESET
-#    define DBG_FORMAT_BACKTRACE                                        \
-    DBG_LOC "%s:%d: (%s) " DBG_RESET "Backtrace (most recent call last):\n"
+#define DBG_LOC "\x1b[02m"
+#define DBG_EXPR "\x1b[0m\x1b[36m\x1b[1m"
+#define DBG_VALUE "\x1b[01m"
+#define DBG_RESET "\x1b[0m"
+#define DBG_FORMAT(format)                                              \
+  DBG_LOC "%s:%d: (%s) " DBG_EXPR "%s" DBG_RESET " = " DBG_VALUE format \
+          "\n" DBG_RESET
+#define DBG_FORMAT_HEX(format, hexformat)                               \
+  DBG_LOC "%s:%d: (%s) " DBG_EXPR "%s" DBG_RESET " = " DBG_VALUE format \
+          " (0x" hexformat ")\n" DBG_RESET
+#define DBG_FORMAT_ARRAY_BEGIN \
+  DBG_LOC "%s:%d: (%s) " DBG_EXPR "%s" DBG_RESET " = " DBG_VALUE "["
+#define DBG_FORMAT_ARRAY_END "] (length: %u)\n" DBG_RESET
+#define DBG_FORMAT_HEXDUMP_BEGIN \
+  DBG_LOC "%s:%d: (%s) " DBG_EXPR "%s " DBG_RESET "(size: %u):\n" DBG_VALUE
+#define DBG_FORMAT_HEXDUMP_END DBG_RESET
+#define DBG_FORMAT_BACKTRACE \
+  DBG_LOC "%s:%d: (%s) " DBG_RESET "Backtrace (most recent call last):\n"
 #else
-#    define DBG_FORMAT(format)     "%s:%d: (%s) %s = " format "\n"
-#    define DBG_FORMAT_HEX(format, hexformat)           \
-    "%s:%d: (%s) %s = " format " (0x" hexformat ")\n"
-#    define DBG_FORMAT_ARRAY_BEGIN "%s:%d: (%s) %s = ["
-#    define DBG_FORMAT_ARRAY_END   "] (length: %u)\n"
-#    define DBG_FORMAT_HEXDUMP_BEGIN "%s:%d: (%s) %s (size: %u):\n"
-#    define DBG_FORMAT_BACKTRACE                        \
-    "%s:%d: (%s) Backtrace (most recent call last):\n"
+#define DBG_FORMAT(format) "%s:%d: (%s) %s = " format "\n"
+#define DBG_FORMAT_HEX(format, hexformat) \
+  "%s:%d: (%s) %s = " format " (0x" hexformat ")\n"
+#define DBG_FORMAT_ARRAY_BEGIN "%s:%d: (%s) %s = ["
+#define DBG_FORMAT_ARRAY_END "] (length: %u)\n"
+#define DBG_FORMAT_HEXDUMP_BEGIN "%s:%d: (%s) %s (size: %u):\n"
+#define DBG_FORMAT_BACKTRACE "%s:%d: (%s) Backtrace (most recent call last):\n"
 #endif
 
 /* Custom output stream. */
 #ifdef DBG_OSTREAM
 extern FILE *DBG_OSTREAM;
 #else
-#    define DBG_OSTREAM stderr
+#define DBG_OSTREAM stderr
 #endif
 
-#define DBG_FUNC_CONST_P(name, type, format)                            \
-    static inline const type *dbg_const_ ## name ## _p(                 \
-        const char *file_p,                                             \
-        int line,                                                       \
-        const char *func_p,                                             \
-        const char *expr_p,                                             \
-        const type *value_p,                                            \
-        int length)                                                     \
-    {                                                                   \
-        int i;                                                          \
-        char *delim_p;                                                  \
-                                                                        \
-        fprintf(DBG_OSTREAM,                                            \
-                DBG_FORMAT_ARRAY_BEGIN,                                 \
-                file_p,                                                 \
-                line,                                                   \
-                func_p,                                                 \
-                expr_p);                                                \
-        delim_p = "";                                                   \
-                                                                        \
-        for (i = 0; i < length; i++) {                                  \
-            fprintf(DBG_OSTREAM, "%s" format, delim_p, value_p[i]);     \
-            delim_p = ", ";                                             \
-        }                                                               \
-                                                                        \
-        fprintf(DBG_OSTREAM, DBG_FORMAT_ARRAY_END, length);             \
-                                                                        \
-        return (value_p);                                               \
-    }
+#define DBG_FUNC_CONST_P(name, type, format)                                \
+  static inline const type *dbg_const_##name##_p(                           \
+      const char *file_p, int line, const char *func_p, const char *expr_p, \
+      const type *value_p, int length) {                                    \
+    int i;                                                                  \
+    char *delim_p;                                                          \
+                                                                            \
+    fprintf(DBG_OSTREAM, DBG_FORMAT_ARRAY_BEGIN, file_p, line, func_p,      \
+            expr_p);                                                        \
+    delim_p = "";                                                           \
+                                                                            \
+    for (i = 0; i < length; i++) {                                          \
+      fprintf(DBG_OSTREAM, "%s" format, delim_p, value_p[i]);               \
+      delim_p = ", ";                                                       \
+    }                                                                       \
+                                                                            \
+    fprintf(DBG_OSTREAM, DBG_FORMAT_ARRAY_END, length);                     \
+                                                                            \
+    return (value_p);                                                       \
+  }
 
-#define DBG_FUNC_P(name, type, format)                          \
-    static inline type *dbg_ ## name ## _p(const char *file_p,  \
-                                           int line,            \
-                                           const char *func_p,  \
-                                           const char *expr_p,  \
-                                           type *value_p,       \
-                                           int length)          \
-    {                                                           \
-        dbg_const_ ## name ## _p(file_p,                        \
-                                 line,                          \
-                                 func_p,                        \
-                                 expr_p,                        \
-                                 value_p,                       \
-                                 length);                       \
-                                                                \
-        return (value_p);                                       \
-    }
+#define DBG_FUNC_P(name, type, format)                                       \
+  static inline type *dbg_##name##_p(const char *file_p, int line,           \
+                                     const char *func_p, const char *expr_p, \
+                                     type *value_p, int length) {            \
+    dbg_const_##name##_p(file_p, line, func_p, expr_p, value_p, length);     \
+                                                                             \
+    return (value_p);                                                        \
+  }
 
-#define DBG_FUNC_HEXDUMP_CONST_P(name, type)                    \
-    static inline const type *dbg_hexdump_const_ ## name ## _p( \
-        const char *file_p,                                     \
-        int line,                                               \
-        const char *func_p,                                     \
-        const char *expr_p,                                     \
-        const type *value_p,                                    \
-        size_t size)                                            \
-    {                                                           \
-        dbg_hexdump(file_p,                                     \
-                    line,                                       \
-                    func_p,                                     \
-                    expr_p,                                     \
-                    (const void *)value_p,                      \
-                    size);                                      \
-                                                                \
-        return (value_p);                                       \
-    }
+#define DBG_FUNC_HEXDUMP_CONST_P(name, type)                                \
+  static inline const type *dbg_hexdump_const_##name##_p(                   \
+      const char *file_p, int line, const char *func_p, const char *expr_p, \
+      const type *value_p, size_t size) {                                   \
+    dbg_hexdump(file_p, line, func_p, expr_p, (const void *)value_p, size); \
+                                                                            \
+    return (value_p);                                                       \
+  }
 
-#define DBG_FUNC_HEXDUMP_P(name, type)                                  \
-    static inline type *dbg_hexdump_ ## name ## _p(const char *file_p,  \
-                                                   int line,            \
-                                                   const char *func_p,  \
-                                                   const char *expr_p,  \
-                                                   type *value_p,       \
-                                                   size_t size)         \
-    {                                                                   \
-        dbg_hexdump_const_ ## name ## _p(file_p,                        \
-                                         line,                          \
-                                         func_p,                        \
-                                         expr_p,                        \
-                                         value_p,                       \
-                                         size);                         \
-                                                                        \
-        return (value_p);                                               \
-    }
+#define DBG_FUNC_HEXDUMP_P(name, type)                                         \
+  static inline type *dbg_hexdump_##name##_p(                                  \
+      const char *file_p, int line, const char *func_p, const char *expr_p,    \
+      type *value_p, size_t size) {                                            \
+    dbg_hexdump_const_##name##_p(file_p, line, func_p, expr_p, value_p, size); \
+                                                                               \
+    return (value_p);                                                          \
+  }
 
-#define DBG_FUNC(name, type, format)                    \
-    static inline type dbg_ ## name(const char *file_p, \
-                                    int line,           \
-                                    const char *func_p, \
-                                    const char *expr_p, \
-                                    type value)         \
-    {                                                   \
-        fprintf(DBG_OSTREAM,                            \
-                DBG_FORMAT(format),                     \
-                file_p,                                 \
-                line,                                   \
-                func_p,                                 \
-                expr_p,                                 \
-                value);                                 \
-                                                        \
-        return (value);                                 \
-    }                                                   \
-    DBG_FUNC_CONST_P(name, type, format)                \
-    DBG_FUNC_P(name, type, format)                      \
-    DBG_FUNC_HEXDUMP_CONST_P(name, type)                \
-    DBG_FUNC_HEXDUMP_P(name, type)
+#define DBG_FUNC(name, type, format)                                       \
+  static inline type dbg_##name(const char *file_p, int line,              \
+                                const char *func_p, const char *expr_p,    \
+                                type value) {                              \
+    fprintf(DBG_OSTREAM, DBG_FORMAT(format), file_p, line, func_p, expr_p, \
+            value);                                                        \
+                                                                           \
+    return (value);                                                        \
+  }                                                                        \
+  DBG_FUNC_CONST_P(name, type, format)                                     \
+  DBG_FUNC_P(name, type, format)                                           \
+  DBG_FUNC_HEXDUMP_CONST_P(name, type)                                     \
+  DBG_FUNC_HEXDUMP_P(name, type)
 
-#define DBG_FUNC_HEX(name, type, format, hexformat)     \
-    static inline type dbg_ ## name(const char *file_p, \
-                                    int line,           \
-                                    const char *func_p, \
-                                    const char *expr_p, \
-                                    type value)         \
-    {                                                   \
-        fprintf(DBG_OSTREAM,                            \
-                DBG_FORMAT_HEX(format, hexformat),      \
-                file_p,                                 \
-                line,                                   \
-                func_p,                                 \
-                expr_p,                                 \
-                value,                                  \
-                value);                                 \
-                                                        \
-        return (value);                                 \
-    }                                                   \
-    DBG_FUNC_CONST_P(name, type, format)                \
-    DBG_FUNC_P(name, type, format)                      \
-    DBG_FUNC_HEXDUMP_CONST_P(name, type)                \
-    DBG_FUNC_HEXDUMP_P(name, type)
+#define DBG_FUNC_HEX(name, type, format, hexformat)                       \
+  static inline type dbg_##name(const char *file_p, int line,             \
+                                const char *func_p, const char *expr_p,   \
+                                type value) {                             \
+    fprintf(DBG_OSTREAM, DBG_FORMAT_HEX(format, hexformat), file_p, line, \
+            func_p, expr_p, value, value);                                \
+                                                                          \
+    return (value);                                                       \
+  }                                                                       \
+  DBG_FUNC_CONST_P(name, type, format)                                    \
+  DBG_FUNC_P(name, type, format)                                          \
+  DBG_FUNC_HEXDUMP_CONST_P(name, type)                                    \
+  DBG_FUNC_HEXDUMP_P(name, type)
 
-#define DBG_FUNC_CHAR_CONST_P(name, type)               \
-    static inline const type *dbg_const_ ## name ## _p( \
-        const char *file_p,                             \
-        int line,                                       \
-        const char *func_p,                             \
-        const char *expr_p,                             \
-        const type *value_p)                            \
-    {                                                   \
-        fprintf(DBG_OSTREAM,                            \
-                DBG_FORMAT("\"%s\""),                   \
-                file_p,                                 \
-                line,                                   \
-                func_p,                                 \
-                expr_p,                                 \
-                value_p);                               \
-                                                        \
-        return (value_p);                               \
-    }
+#define DBG_FUNC_CHAR_CONST_P(name, type)                                    \
+  static inline const type *dbg_const_##name##_p(                            \
+      const char *file_p, int line, const char *func_p, const char *expr_p,  \
+      const type *value_p) {                                                 \
+    fprintf(DBG_OSTREAM, DBG_FORMAT("\"%s\""), file_p, line, func_p, expr_p, \
+            value_p);                                                        \
+                                                                             \
+    return (value_p);                                                        \
+  }
 
-#define DBG_FUNC_CHAR_P(name, type)                                     \
-    static inline type *dbg_ ## name ## _p(const char *file_p,          \
-                                           int line,                    \
-                                           const char *func_p,          \
-                                           const char *expr_p,          \
-                                           type *value_p)               \
-    {                                                                   \
-        dbg_const_ ## name ## _p(file_p, line, func_p, expr_p, value_p); \
-                                                                        \
-        return (value_p);                                               \
-    }
+#define DBG_FUNC_CHAR_P(name, type)                                          \
+  static inline type *dbg_##name##_p(const char *file_p, int line,           \
+                                     const char *func_p, const char *expr_p, \
+                                     type *value_p) {                        \
+    dbg_const_##name##_p(file_p, line, func_p, expr_p, value_p);             \
+                                                                             \
+    return (value_p);                                                        \
+  }
 
-#define DBG_FUNC_CHAR(name, type, format)               \
-    static inline type dbg_ ## name(const char *file_p, \
-                                    int line,           \
-                                    const char *func_p, \
-                                    const char *expr_p, \
-                                    type value)         \
-    {                                                   \
-        fprintf(DBG_OSTREAM,                            \
-                DBG_FORMAT(format),                     \
-                file_p,                                 \
-                line,                                   \
-                func_p,                                 \
-                expr_p,                                 \
-                value);                                 \
-                                                        \
-        return (value);                                 \
-    }                                                   \
-    DBG_FUNC_CHAR_CONST_P(name, type)                   \
-    DBG_FUNC_CHAR_P(name, type)                         \
-    DBG_FUNC_HEXDUMP_CONST_P(name, type)                \
-    DBG_FUNC_HEXDUMP_P(name, type)
+#define DBG_FUNC_CHAR(name, type, format)                                  \
+  static inline type dbg_##name(const char *file_p, int line,              \
+                                const char *func_p, const char *expr_p,    \
+                                type value) {                              \
+    fprintf(DBG_OSTREAM, DBG_FORMAT(format), file_p, line, func_p, expr_p, \
+            value);                                                        \
+                                                                           \
+    return (value);                                                        \
+  }                                                                        \
+  DBG_FUNC_CHAR_CONST_P(name, type)                                        \
+  DBG_FUNC_CHAR_P(name, type)                                              \
+  DBG_FUNC_HEXDUMP_CONST_P(name, type)                                     \
+  DBG_FUNC_HEXDUMP_P(name, type)
 
-static inline const char *dbg_format_bool(bool value)
-{
-    return (value ? "true" : "false");
+static inline const char *dbg_format_bool(bool value) {
+  return (value ? "true" : "false");
 }
 
-static inline bool dbg_bool(const char *file_p,
-                            int line,
-                            const char *func_p,
-                            const char *expr_p,
-                            bool value)
-{
-    fprintf(DBG_OSTREAM,
-            DBG_FORMAT("%s"),
-            file_p,
-            line,
-            func_p,
-            expr_p,
-            dbg_format_bool(value));
+static inline bool dbg_bool(const char *file_p, int line, const char *func_p,
+                            const char *expr_p, bool value) {
+  fprintf(DBG_OSTREAM, DBG_FORMAT("%s"), file_p, line, func_p, expr_p,
+          dbg_format_bool(value));
 
-    return (value);
+  return (value);
 }
 
-static inline const bool *dbg_const_bool_p(const char *file_p,
-                                           int line,
+static inline const bool *dbg_const_bool_p(const char *file_p, int line,
                                            const char *func_p,
                                            const char *expr_p,
-                                           const bool *value_p,
-                                           int length)
-{
-    int i;
-    char *delim_p;
+                                           const bool *value_p, int length) {
+  int i;
+  char *delim_p;
 
-    fprintf(DBG_OSTREAM, DBG_FORMAT_ARRAY_BEGIN, file_p, line, func_p, expr_p);
-    delim_p = "";
+  fprintf(DBG_OSTREAM, DBG_FORMAT_ARRAY_BEGIN, file_p, line, func_p, expr_p);
+  delim_p = "";
 
-    for (i = 0; i < length; i++) {
-        fprintf(DBG_OSTREAM, "%s%s", delim_p, dbg_format_bool(value_p[i]));
-        delim_p = ", ";
-    }
+  for (i = 0; i < length; i++) {
+    fprintf(DBG_OSTREAM, "%s%s", delim_p, dbg_format_bool(value_p[i]));
+    delim_p = ", ";
+  }
 
-    fprintf(DBG_OSTREAM, DBG_FORMAT_ARRAY_END, length);
+  fprintf(DBG_OSTREAM, DBG_FORMAT_ARRAY_END, length);
 
-    return (value_p);
+  return (value_p);
 }
 
-static inline bool *dbg_bool_p(const char *file_p,
-                               int line,
-                               const char *func_p,
-                               const char *expr_p,
-                               bool *value_p,
-                               int length)
-{
-    (void)dbg_const_bool_p(file_p, line, func_p, expr_p, value_p, length);
+static inline bool *dbg_bool_p(const char *file_p, int line, const char *func_p,
+                               const char *expr_p, bool *value_p, int length) {
+  (void)dbg_const_bool_p(file_p, line, func_p, expr_p, value_p, length);
 
-    return (value_p);
+  return (value_p);
 }
 
-static inline void *dbg_pointer(const char *file_p,
-                                int line,
-                                const char *func_p,
-                                const char *expr_p,
-                                void *value_p)
-{
-    fprintf(DBG_OSTREAM, DBG_FORMAT("%p"), file_p, line, func_p, expr_p, value_p);
+static inline void *dbg_pointer(const char *file_p, int line,
+                                const char *func_p, const char *expr_p,
+                                void *value_p) {
+  fprintf(DBG_OSTREAM, DBG_FORMAT("%p"), file_p, line, func_p, expr_p, value_p);
 
-    return (value_p);
+  return (value_p);
 }
 
-static inline void dbg_print_ascii(const uint8_t *buf_p, size_t size)
-{
-    size_t i;
+static inline void dbg_print_ascii(const uint8_t *buf_p, size_t size) {
+  size_t i;
 
-    if (size < 8) {
-        fprintf(DBG_OSTREAM, " ");
-    }
+  if (size < 8) {
+    fprintf(DBG_OSTREAM, " ");
+  }
 
-    for (i = 0; i < 16 - size; i++) {
-        fprintf(DBG_OSTREAM, "   ");
-    }
+  for (i = 0; i < 16 - size; i++) {
+    fprintf(DBG_OSTREAM, "   ");
+  }
 
-    fprintf(DBG_OSTREAM, "'");
+  fprintf(DBG_OSTREAM, "'");
 
-    for (i = 0; i < size; i++) {
-        fprintf(DBG_OSTREAM, "%c", isprint((int)buf_p[i]) ? buf_p[i] : '.');
-    }
+  for (i = 0; i < size; i++) {
+    fprintf(DBG_OSTREAM, "%c", isprint((int)buf_p[i]) ? buf_p[i] : '.');
+  }
 
-    fprintf(DBG_OSTREAM, "'");
+  fprintf(DBG_OSTREAM, "'");
 }
 
-static inline void dbg_hexdump(const char *file_p,
-                               int line,
-                               const char *func_p,
-                               const char *expr_p,
-                               const void *buf_p,
-                               size_t size)
-{
-    int pos;
-    const uint8_t *u8_buf_p;
+static inline void dbg_hexdump(const char *file_p, int line, const char *func_p,
+                               const char *expr_p, const void *buf_p,
+                               size_t size) {
+  int pos;
+  const uint8_t *u8_buf_p;
 
-    u8_buf_p = buf_p;
-    pos = 0;
+  u8_buf_p = buf_p;
+  pos = 0;
 
-    fprintf(DBG_OSTREAM,
-            DBG_FORMAT_HEXDUMP_BEGIN,
-            file_p,
-            line,
-            func_p,
-            expr_p,
-            (int)size);
+  fprintf(DBG_OSTREAM, DBG_FORMAT_HEXDUMP_BEGIN, file_p, line, func_p, expr_p,
+          (int)size);
 
-    while (size > 0) {
-        if ((pos % 16) == 0) {
-            fprintf(DBG_OSTREAM, "    %08x: ", pos);
-        }
-
-        fprintf(DBG_OSTREAM, "%02x ", u8_buf_p[pos] & 0xff);
-
-        if ((pos % 16) == 7) {
-            fprintf(DBG_OSTREAM, " ");
-        }
-
-        if ((pos % 16) == 15) {
-            dbg_print_ascii(&u8_buf_p[pos - 15], 16);
-            fprintf(DBG_OSTREAM, "\n");
-        }
-
-        pos++;
-        size--;
+  while (size > 0) {
+    if ((pos % 16) == 0) {
+      fprintf(DBG_OSTREAM, "    %08x: ", pos);
     }
 
-    if ((pos % 16) != 0) {
-        dbg_print_ascii(&u8_buf_p[pos - (pos % 16)], pos % 16);
-        fprintf(DBG_OSTREAM, "\n");
+    fprintf(DBG_OSTREAM, "%02x ", u8_buf_p[pos] & 0xff);
+
+    if ((pos % 16) == 7) {
+      fprintf(DBG_OSTREAM, " ");
     }
+
+    if ((pos % 16) == 15) {
+      dbg_print_ascii(&u8_buf_p[pos - 15], 16);
+      fprintf(DBG_OSTREAM, "\n");
+    }
+
+    pos++;
+    size--;
+  }
+
+  if ((pos % 16) != 0) {
+    dbg_print_ascii(&u8_buf_p[pos - (pos % 16)], pos % 16);
+    fprintf(DBG_OSTREAM, "\n");
+  }
 
 #ifdef DBG_FORMAT_HEXDUMP_END
-    fprintf(DBG_OSTREAM, DBG_FORMAT_HEXDUMP_END);
+  fprintf(DBG_OSTREAM, DBG_FORMAT_HEXDUMP_END);
 #endif
 }
 
-static inline void *dbg_hexdump_p(const char *file_p,
-                                  int line,
-                                  const char *func_p,
-                                  const char *expr_p,
-                                  void *buf_p,
-                                  size_t size)
-{
-    dbg_hexdump(file_p, line, func_p, expr_p, buf_p, size);
+static inline void *dbg_hexdump_p(const char *file_p, int line,
+                                  const char *func_p, const char *expr_p,
+                                  void *buf_p, size_t size) {
+  dbg_hexdump(file_p, line, func_p, expr_p, buf_p, size);
 
-    return (buf_p);
+  return (buf_p);
 }
 
-static inline const void *dbg_hexdump_const_p(const char *file_p,
-                                              int line,
+static inline const void *dbg_hexdump_const_p(const char *file_p, int line,
                                               const char *func_p,
                                               const char *expr_p,
-                                              const void *buf_p,
-                                              size_t size)
-{
-    dbg_hexdump(file_p, line, func_p, expr_p, buf_p, size);
+                                              const void *buf_p, size_t size) {
+  dbg_hexdump(file_p, line, func_p, expr_p, buf_p, size);
 
-    return (buf_p);
+  return (buf_p);
 }
 
 DBG_FUNC_CHAR(char, char, "%hhi")
@@ -557,139 +442,118 @@ DBG_FUNC_HEX(ullong, unsigned long long, "%llu", "%llx")
 DBG_FUNC(float, float, "%f")
 DBG_FUNC(double, double, "%lf")
 
-static inline int dbg_error(const char *file_p,
-                            int line,
-                            const char *func_p,
-                            const char *expr_p,
-                            int error)
-{
-    char string[128];
-    char buf[256];
+static inline int dbg_error(const char *file_p, int line, const char *func_p,
+                            const char *expr_p, int error) {
+  char string[128];
+  char buf[256];
 
-    if (error < 0) {
-        strerror_r(-error, &string[0], sizeof(string));
-        snprintf(&buf[0], sizeof(buf), "%d (%s)", error, &string[0]);
-        buf[sizeof(buf) - 1] = '\0';
-        fprintf(DBG_OSTREAM,
-                DBG_FORMAT("%s"),
-                file_p,
-                line,
-                func_p,
-                expr_p,
-                &buf[0]);
-    } else {
-        dbg_int(file_p, line, func_p, expr_p, error);
-    }
+  if (error < 0) {
+    strerror_r(-error, &string[0], sizeof(string));
+    snprintf(&buf[0], sizeof(buf), "%d (%s)", error, &string[0]);
+    buf[sizeof(buf) - 1] = '\0';
+    fprintf(DBG_OSTREAM, DBG_FORMAT("%s"), file_p, line, func_p, expr_p,
+            &buf[0]);
+  } else {
+    dbg_int(file_p, line, func_p, expr_p, error);
+  }
 
-    return (error);
+  return (error);
 }
 
 #ifdef __GLIBC__
 
 #define DBG_BACKTRACE_MAX 100
 #define DBG_TOKENPASTE(x, y) DBG_TOKENPASTE2(x, y)
-#define DBG_TOKENPASTE2(x, y) x ## y
-#define DBG_UNIQUE(x)  DBG_TOKENPASTE(x, DBG_TOKENPASTE(___, __LINE__))
+#define DBG_TOKENPASTE2(x, y) x##y
+#define DBG_UNIQUE(x) DBG_TOKENPASTE(x, DBG_TOKENPASTE(___, __LINE__))
 
 /**
  * Print a backtrace. Pass -rdynamic to the linker for function names.
  */
-#define dbgbt()                                                 \
-    do {                                                        \
-        void *DBG_UNIQUE(buf)[DBG_BACKTRACE_MAX];               \
-                                                                \
-        dbg_format_backtrace(__FILE__,                          \
-                             __LINE__,                          \
-                             __func__,                          \
-                             &DBG_UNIQUE(buf)[0],               \
-                             backtrace(&DBG_UNIQUE(buf)[0],     \
-                                       DBG_BACKTRACE_MAX));     \
-    } while (0)
+#define dbgbt()                                                              \
+  do {                                                                       \
+    void *DBG_UNIQUE(buf)[DBG_BACKTRACE_MAX];                                \
+                                                                             \
+    dbg_format_backtrace(__FILE__, __LINE__, __func__, &DBG_UNIQUE(buf)[0],  \
+                         backtrace(&DBG_UNIQUE(buf)[0], DBG_BACKTRACE_MAX)); \
+  } while (0)
 
 static inline int dbg_format_backtrace_addr2line(void **addresses_pp,
-                                                 int depth)
-{
+                                                 int depth) {
 #ifdef DBG_ADDR2LINE
 
-    char exe[256];
-    char command[384];
-    ssize_t size;
-    int res;
-    int i;
+  char exe[256];
+  char command[384];
+  ssize_t size;
+  int res;
+  int i;
 
-    size = readlink("/proc/self/exe", &exe[0], sizeof(exe) - 1);
+  size = readlink("/proc/self/exe", &exe[0], sizeof(exe) - 1);
 
-    if (size == -1) {
-        printf("No executable found!\n");
+  if (size == -1) {
+    printf("No executable found!\n");
 
+    return (-1);
+  }
+
+  exe[size] = '\0';
+
+  for (i = (depth - 1); i >= 0; i--) {
+    snprintf(&command[0], sizeof(command), "addr2line -f -p -e %s %p", &exe[0],
+             ((void *)(((uintptr_t)(addresses_pp[i])) - 1)));
+    command[sizeof(command) - 1] = '\0';
+
+    res = system(&command[0]);
+
+    if (res == -1) {
+      return (-1);
+    } else if (WIFEXITED(res)) {
+      if (WEXITSTATUS(res) != 0) {
         return (-1);
+      }
+    } else {
+      return (-1);
     }
+  }
 
-    exe[size] = '\0';
-
-    for (i = (depth - 1); i >= 0; i--) {
-        snprintf(&command[0],
-                 sizeof(command),
-                 "addr2line -f -p -e %s %p",
-                 &exe[0],
-                 ((void *)(((uintptr_t)(addresses_pp[i])) - 1)));
-        command[sizeof(command) - 1] = '\0';
-
-        res = system(&command[0]);
-
-        if (res == -1) {
-            return (-1);
-        } else if (WIFEXITED(res)) {
-            if (WEXITSTATUS(res) != 0) {
-                return (-1);
-            }
-        } else {
-            return (-1);
-        }
-    }
-
-    return (0);
+  return (0);
 
 #else
 
-    (void)addresses_pp;
-    (void)depth;
+  (void)addresses_pp;
+  (void)depth;
 
-    return (-1);
+  return (-1);
 
 #endif
 }
 
 static inline void dbg_format_backtrace_symbols(void **addresses_pp,
-                                                int depth)
-{
-    char **strings_pp;
-    int i;
+                                                int depth) {
+  char **strings_pp;
+  int i;
 
-    strings_pp = backtrace_symbols(addresses_pp, depth);
+  strings_pp = backtrace_symbols(addresses_pp, depth);
 
-    if (strings_pp == NULL) {
-        printf("  No strings found!\n");
-    } else {
-        for (i = (depth - 1); i >= 0; i--) {
-            printf("  %s\n", strings_pp[i]);
-        }
-
-        free(strings_pp);
+  if (strings_pp == NULL) {
+    printf("  No strings found!\n");
+  } else {
+    for (i = (depth - 1); i >= 0; i--) {
+      printf("  %s\n", strings_pp[i]);
     }
+
+    free(strings_pp);
+  }
 }
 
-static inline void dbg_format_backtrace(const char *file_p,
-                                        int line,
-                                        const char *func_p,
-                                        void **addresses_pp,
-                                        int depth)
-{
-    printf(DBG_FORMAT_BACKTRACE, file_p, line, func_p);
+static inline void dbg_format_backtrace(const char *file_p, int line,
+                                        const char *func_p, void **addresses_pp,
+                                        int depth) {
+  printf(DBG_FORMAT_BACKTRACE, file_p, line, func_p);
 
-    if (dbg_format_backtrace_addr2line(addresses_pp, depth) != 0) {
-        dbg_format_backtrace_symbols(addresses_pp, depth);
-    }
+  if (dbg_format_backtrace_addr2line(addresses_pp, depth) != 0) {
+    dbg_format_backtrace_symbols(addresses_pp, depth);
+  }
 }
 
 #endif
