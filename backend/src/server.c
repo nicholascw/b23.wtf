@@ -280,6 +280,7 @@ char *recv_url(int sockfd, int *redir_flag) {
         *have_params = '\0';
       L_INFOF("Rewritten URL: %s", url_found);
     } else {
+      *redir_flag = 1;
       L_INFOF("Kept original URL: %s", url_found);
     }
     free(buf);
