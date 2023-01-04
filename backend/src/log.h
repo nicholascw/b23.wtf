@@ -26,6 +26,7 @@
 
 static char slow_snprintf_buf[1024];
 
+
 #define __FNAME__ \
   (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 #define L_DEBUG(STR) \
@@ -58,6 +59,8 @@ static char slow_snprintf_buf[1024];
     snprintf(slow_snprintf_buf, 1024, (FMT), __VA_ARGS__); \
     L_ERR(slow_snprintf_buf);                              \
   } while (0);
+
+
 
 typedef enum {
   DBG = 1,

@@ -112,12 +112,9 @@ char *urldecode(const char *str) {
       strncpy(new_str + last_cpy_dst, str + last_cpy_src, i - last_cpy_src);
       last_cpy_dst += i - last_cpy_src + 1;
       last_cpy_src = i + 3;
-      dbg(last_cpy_src);
-      dbg(last_cpy_dst);
       unsigned int x;
       sscanf(to_escape, "%x", &x);
       new_str[last_cpy_dst - 1] = (char)x;
-      dbg(new_str);
     }
   }
   strncpy(new_str + last_cpy_dst, str + last_cpy_src, len - last_cpy_src);
@@ -449,7 +446,9 @@ void *fetch_b23tv(void *args_) {
           "type=\"button\" onclick=\"c()\" id=\"c\">复制 <br><span "
           "class=\"badge "
           "badge-success\" id=\"cc\" hidden>已复制</span></button> <a "
-          "class=\"btn btn-info\" href=\"%s\">前往</a> </div></div></main> "
+          "class=\"btn btn-info\" href=\"%s\">前往</a> </div></div>"
+          "<p>您看到此页面即表示当前短链接包含mid参数，即创建短链接拥护的UID。"
+          "在此建议您直接分享如上目的地址。</p></main> "
           "<footer class=\"mt-auto\"> <p>Powered by <a "
           "href=\"https://www.nicholas.wang/\">Nicholas Wang</a>. Project "
           "licensed under GPLv3. <a "
@@ -739,12 +738,14 @@ int main(int argc, char **argv) {
                     this_conn->filefd = -1;
                   }
                   char *ua;
-                  if ((ua = strcasestr(last_sp + 1, "User-Agent:"))) {
+                  if ((ua = strcasestr(req_start_line_crlf + 1, "User-Agent:"))) {
                     char *ua_end = strchr(ua, '\n');
-                    if (ua_end) ua_end = '\0';
+                    if (ua_end) *ua_end = '\0';
                     if (strcasestr(ua, "bot") || strcasestr(ua, "curl") ||
-                        strcasestr(ua, "API"))
+                        strcasestr(ua, "API")) {
                       this_conn->is_bot = 1;
+                      L_DEBUGF("fd=%d is bot.", this_evfd);
+                    }
                   }
                   memcpy(thread_args, &this_conn, sizeof(conn_info_t *));
                   memcpy(thread_args + sizeof(conn_info_t *), &first_sp,
