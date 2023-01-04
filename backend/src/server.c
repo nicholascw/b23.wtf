@@ -277,6 +277,7 @@ char *recv_url(int sockfd, int *redir_flag) {
         *have_params = '\0';
       L_INFOF("Rewritten URL: %s", url_found);
     } else {
+      *redir_flag = 1;
       L_INFOF("Kept original URL: %s", url_found);
     }
     free(buf);
@@ -548,6 +549,8 @@ int main(int argc, char **argv) {
                             : ((conn_info_t *)events[i].data.ptr)->connfd;
         if (events[i].events & EPOLL_ERRS) {
           L_ERRF("Error occured on fd=%d, closing...", this_evfd);
+          conn_info_t *this_conn = events[i].data.ptr;
+          if (this_conn->filefd > 0) close(this_conn->filefd);
           free(events[i].data.ptr);
           close(this_evfd);
           epoll_ctl(epollfd, EPOLL_CTL_DEL, this_evfd, NULL);
