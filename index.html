@@ -145,7 +145,12 @@
         outputLink.value = 'No URL detected!';
         return;
       }
-      await fetch(new URL(hash, window.location.origin))
+      let q = new URL('/api', window.location.origin);
+      let search = new URLSearchParams();
+      search.append('full', 'b23.tv' + hash);
+      search.append('type', 'text');
+      q.search = search.toString();
+      await fetch(q)
         .then((response) => {
           if (response.status !== 200) {
             throw new Error('Network response was not OK');
@@ -153,13 +158,8 @@
           return response.text();
         })
         .then((t) => {
-          const a = 'value="';
-          const b = '"';
-          const p = t.indexOf(a) + a.length;
-          const q = t.indexOf(b, p);
-          const url = t.slice(p, q);
-          outputLink.value = url;
-          visitButton.href = url;
+          outputLink.value = t;
+          visitButton.href = t;
         })
         .catch(error => {
           outputLink.value = 'Cannot fetch corresponding URL.';

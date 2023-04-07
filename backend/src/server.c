@@ -340,11 +340,18 @@ void *fetch_b23tv(void *args_) {
     L_PERROR();
     return NULL;
   }
+  int return_in_text = 0;
   int auto_redirect = args.info->is_bot;
-  if (strstr(args.url, "/api?full=") == args.url) {
+  if (strstr(args.url, "/api?") == args.url) {
+    if (strstr(args.url + 5, "type=text")) { return_in_text = 1; }
     auto_redirect = 1;
-    char *decoded_url = urldecode(args.url);
+    char *qbegin = strstr(args.url + 5, "full=");
+    char *qend = NULL;
+    if (qbegin) qend = strchr(qbegin, '&');
+    if (qend) *qend = '\0';
+    char *decoded_url = urldecode(qbegin ? qbegin : args.url);
     if (decoded_url) {
+      if (qend) *qend = '&';
       char *hostname_in_full = strcasestr(decoded_url, "b23.tv/");
       if (!hostname_in_full)
         hostname_in_full = strcasestr(decoded_url, "bili2233.cn/");
@@ -378,6 +385,11 @@ void *fetch_b23tv(void *args_) {
     if (auto_redirect) {
       snprintf(
           args.info->buf, PIPE_BUF,
+          return_in_text ?
+          "HTTP/1.1 200 OK\r\n"
+          "Referrer-Policy: no-referrer\r\n"
+          "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n"
+          "\r\n%s" :
           "HTTP/1.1 302 Found\r\n"
           "Referrer-Policy: no-referrer\r\n"
           "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n"
