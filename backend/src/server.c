@@ -343,9 +343,9 @@ void *fetch_b23tv(void *args_) {
   int return_in_text = 0;
   int auto_redirect = args.info->is_bot;
   if (strstr(args.url, "/api?") == args.url) {
-    if (strstr(args.url + 5, "type=text")) { return_in_text = 1; }
+    if (strstr(args.url + 4, "type=text")) { return_in_text = 1; }
     auto_redirect = 1;
-    char *qbegin = strstr(args.url + 5, "full=");
+    char *qbegin = strstr(args.url + 4, "full=");
     char *qend = NULL;
     if (qbegin) qend = strchr(qbegin, '&');
     if (qend) *qend = '\0';
