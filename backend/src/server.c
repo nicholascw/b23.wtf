@@ -350,8 +350,8 @@ void *fetch_b23tv(void *args_) {
     if (qbegin) qend = strchr(qbegin, '&');
     if (qend) *qend = '\0';
     char *decoded_url = urldecode(qbegin ? qbegin : args.url);
+    if (qend) *qend = '&';
     if (decoded_url) {
-      if (qend) *qend = '&';
       char *hostname_in_full = strcasestr(decoded_url, "b23.tv/");
       if (!hostname_in_full)
         hostname_in_full = strcasestr(decoded_url, "bili2233.cn/");
