@@ -281,8 +281,8 @@ char *recv_url(int sockfd, int *redir_flag) {
       L_INFOF("Kept original URL: %s", url_found);
     }
     free(buf);
-    return url_found;
     free(hostname);
+    return url_found;
   }
   free(buf);
   return NULL;
@@ -449,7 +449,8 @@ void *fetch_b23tv(void *args_) {
           "badge-success\" id=\"cc\" hidden>已复制</span></button> <a "
           "class=\"btn btn-info\" href=\"%s\">前往</a> </div></div>"
           "<p>您看到此页面即表示当前短链接包含mid参数，即创建短链接用户的UID。"
-          "在此建议您直接分享如上目的地址。</p></main> "
+          "在此建议您直接分享如上目的地址。<a href=\"/setautoredirect1\" "
+          "class=\"btn btn-light\">今后自动跳转</a></p></main>"
           "<footer class=\"mt-auto\"> <p>Powered by <a "
           "href=\"https://www.nicholas.wang/\">Nicholas Wang</a>. Project "
           "licensed under GPLv3. <a "
@@ -656,7 +657,21 @@ int main(int argc, char **argv) {
               } else {
                 *last_sp = '\0';
                 first_sp++;
-                if (strlen(first_sp) == 1 && *first_sp == '/') {
+                if (strstr(first_sp, "/setautoredirect") == first_sp &&
+                    (*(first_sp + strlen("/setautoredirect")) == '0' ||
+                     *(first_sp + strlen("/setautoredirect")) == '1')) {
+                  L_DEBUGF("set autoredirect=%c cookie for fd=%d.",
+                           *(first_sp + strlen("/setautoredirect")), this_evfd);
+                  snprintf(this_conn->buf, PIPE_BUF,
+                           "HTTP/1.1 200 OK\r\n"
+                           "Set-Cookie: autoredirect=%c; SameSite=Strict; "
+                           "Max-Age=7776000\r\n\r\n"
+                           "Set-Cookie done! -- b23.wtf\r\n",
+                           *(first_sp + strlen("/setautoredirect")));
+                  L_INFOF("Responded fd=%d 200 OK", this_evfd);
+                  this_conn->len = strlen(this_conn->buf);
+                  this_conn->filefd = -1;
+                } else if (strlen(first_sp) == 1 && *first_sp == '/') {
                   // return index.html
                   int file_ret = open("./index.html", O_RDONLY | O_NONBLOCK);
                   if (file_ret == -1) {
@@ -741,7 +756,8 @@ int main(int argc, char **argv) {
                     this_conn->filefd = -1;
                   }
                   char *ua;
-                  if ((ua = strcasestr(req_start_line_crlf + 1, "User-Agent:"))) {
+                  if ((ua = strcasestr(req_start_line_crlf + 1,
+                                       "User-Agent:"))) {
                     char *ua_end = strchr(ua, '\n');
                     if (ua_end) *ua_end = '\0';
                     if (strcasestr(ua, "bot") || strcasestr(ua, "curl") ||
@@ -749,6 +765,19 @@ int main(int argc, char **argv) {
                       this_conn->is_bot = 1;
                       L_DEBUGF("fd=%d is bot.", this_evfd);
                     }
+                    if (ua_end) *ua_end = '\n';
+                  }
+                  char *cookie;
+                  if ((cookie =
+                           strcasestr(req_start_line_crlf + 1, "Cookie:"))) {
+                    char *cookie_end = strchr(cookie, '\n');
+                    if (cookie_end) *cookie_end = '\0';
+                    if (strcasestr(cookie, "autoredirect=1")) {
+                      this_conn->is_bot = 1;
+                      L_DEBUGF("fd=%d ask for auto-redirect via Cookie.",
+                               this_evfd);
+                    }
+                    if (cookie_end) *cookie_end = '\n';
                   }
                   memcpy(thread_args, &this_conn, sizeof(conn_info_t *));
                   memcpy(thread_args + sizeof(conn_info_t *), &first_sp,
