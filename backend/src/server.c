@@ -270,14 +270,14 @@ char *recv_url(int sockfd, int *redir_flag) {
     }
     char *have_params = strchr(url_found, '?');
     if (have_params && !is_taobao) {
-      if (strstr(have_params, "mid=") == NULL) {
-        *redir_flag = 1;
+      if (strstr(have_params, "mid=")==NULL) {
+        *redir_flag = *redir_flag | 1;
       }
       if (generic_params_filter(have_params) || strlen(have_params) == 1)
         *have_params = '\0';
       L_INFOF("Rewritten URL: %s", url_found);
     } else {
-      *redir_flag = 1;
+      *redir_flag = *redir_flag | 1;
       L_INFOF("Kept original URL: %s", url_found);
     }
     free(buf);
@@ -385,7 +385,7 @@ void *fetch_b23tv(void *args_) {
           "HTTP/1.1 %s\r\n"
           "Referrer-Policy: no-referrer\r\n"
           "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n"
-          "Location: %s\r\n\r\n%s\r\n", (auto_redirect==200 ? "200 OK" : "302 Found"),
+          "Location: %s\r\n\r\n%s\r\n", (auto_redirect & 200 ? "200 OK" : "302 Found"),
           prepared_response, prepared_response);
       L_INFOF("Responded fd=%d 302 Found", args.info->connfd);
     } else {
