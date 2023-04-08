@@ -26,12 +26,6 @@
           }
   </style>
   <style>
-    .btn-secondary,
-    .btn-secondary:hover,
-    .btn-secondary:focus {
-      color: #333;
-      text-shadow: none;
-    }
     body {
       text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
       box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
@@ -65,7 +59,7 @@
   <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
     <header class="mb-auto">
       <div>
-        <h3 class="float-md-start mb-0"><img src="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/logo.png" style="height:1em; postion:relative"> b23.wtf</h3>
+        <h3 class="float-md-start mb-0"><img src="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/logo.png" style="height:1em; position:relative"> b23.wtf</h3>
         <nav class="nav nav-masthead justify-content-center float-md-end">
           <!--<a class="nav-link active" aria-current="page" href="#">Home</a>-->
           <a class="nav-link" href="https://status.b23.wtf">服务状态</a>
@@ -75,7 +69,26 @@
     <main class="px-3">
       <h2>无痛去除 b23.tv 追踪信息的解决方案。</h2>
       <p class="lead">选中 "tv", 改为 "wtf", 发送。</p>
-      <p><img src="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/demo.png" style="width:100%; postion:relative;padding-bottom:1em"></p>
+      <p><img src="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/demo.png" style="width:100%; position:relative;padding-bottom:1em"></p>
+      <p class="lead">或直接将含有短链接的文本粘贴在下方。</p>
+      <div class="paste-input">
+        <p><textarea
+          id="paste-input"
+          name="paste-input"
+          class="form-control"
+          title="Paste text that contains b23.tv URL here ..."
+          placeholder="Paste some text containing https://b23.tv/xxxxxxx here."
+          spellcheck="false"
+          required></textarea>
+        </p>
+      </div>
+      <p><div class="link-result input-group input-group-lg">
+        <input type="text" class="form-control" value="" id="link-result" readonly="">
+        <div class="input-group-append">
+          <button class="btn btn-secondary" type="button">复制<br><span class="badge badge-success" style="display: none;">已复制</span></button>
+          <a class="btn btn-info" id="visit-link" href="/#">前往</a>
+        </div>
+      </div></p>
       <span style="border-radius: 5px; background: rgba(233,233,233,0.3); padding: 0.5em">当前节点: $(cat /etc/hostname)</span>
     </main>
     <footer class="mt-auto">
@@ -85,6 +98,77 @@
       </p>
     </footer>
   </div>
+  <script>
+    const pasteInput = document.getElementById('paste-input');
+    const outputLink = document.getElementById('link-result');
+    const visitButton = document.getElementById('visit-link');
+    // registering events of copy button
+    document.querySelectorAll('.link-result').forEach(container => {
+      const resultLink = container.querySelector('input');
+      const copyButton = container.querySelector('.btn-secondary');
+      const copiedBadge = container.querySelector('.badge');
+      resultLink.addEventListener('focus', () => resultLink.select());
+      copyButton.addEventListener('click', () => {
+        resultLink.select();
+        navigator.clipboard.writeText(resultLink.value);
+        copiedBadge.style.display = '';
+        setTimeout(() => { copiedBadge.style.display = 'none'; }, 2000);
+      });
+    });
+    const b23 = 'https://b23.tv';
+    outputLink.value = 'No URL detected!';
+    pasteInput.addEventListener('input', () => {
+      const s = pasteInput.value;
+      const p = s.indexOf(b23);
+      if (p === -1) {
+        window.location.hash = '';
+        outputLink.value = 'No URL detected!';
+        return;
+      }
+      const q = p + b23.length;
+      let i = q, code;
+      do {
+        i += 1;
+        code = s.charCodeAt(i);
+      } while(
+        (code > 47 && code < 58)      // numeric (0-9)
+        || (code > 64 && code < 91)   // upper alpha (A-Z)
+        || (code > 96 && code < 123)  // lower alpha (a-z)
+      );
+      window.location.hash = s.slice(q, i);
+    });
+    const handleHash = async function () {
+      const hash = window.location.hash.slice(1);
+      outputLink.value = 'Getting result...';
+      visitButton.href = '/#';
+      if (hash === '') {
+        outputLink.value = 'No URL detected!';
+        return;
+      }
+      let q = new URL('/api', window.location.origin);
+      let search = new URLSearchParams();
+      search.append('full', 'b23.tv' + hash);
+      search.append('type', 'text');
+      q.search = search.toString();
+      await fetch(q)
+        .then((response) => {
+          if (response.status !== 200) {
+            throw new Error('Network response was not OK');
+          }
+          return response.text();
+        })
+        .then((t) => {
+          outputLink.value = t;
+          visitButton.href = t;
+        })
+        .catch(error => {
+          outputLink.value = 'Cannot fetch corresponding URL.';
+          visitButton.href = '/#';
+        });
+    };
+    window.onload = handleHash;
+    window.onhashchange = handleHash;
+  </script>
 </body>
 </html>
 
