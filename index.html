@@ -68,18 +68,17 @@
     </header>
     <main class="px-3">
       <h2>无痛去除 b23.tv 追踪信息的解决方案。</h2>
-      <p class="lead">选中 "tv", 改为 "wtf", 发送。</p>
       <p><img src="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/demo.png" style="width:100%; position:relative;padding-bottom:1em"></p>
-      <p class="lead">或直接将含有短链接的文本粘贴在下方。</p>
+      <p class="lead">将 "tv" 改为 "tf" 后访问，或将短链接粘贴在下方。</p>
       <div class="paste-input">
-        <p><textarea
+        <p><input
           id="paste-input"
           name="paste-input"
           class="form-control"
           title="Paste text that contains b23.tv URL here ..."
           placeholder="Paste some text containing https://b23.tv/xxxxxxx here."
           spellcheck="false"
-          required></textarea>
+          required></input>
         </p>
       </div>
       <p><div class="link-result input-group input-group-lg">
@@ -116,13 +115,13 @@
       });
     });
     const b23 = 'https://b23.tv';
-    outputLink.value = 'No URL detected!';
+    outputLink.value = '未检测到 b23.tv 短链接';
     pasteInput.addEventListener('input', () => {
       const s = pasteInput.value;
       const p = s.indexOf(b23);
       if (p === -1) {
         window.location.hash = '';
-        outputLink.value = 'No URL detected!';
+        outputLink.value = '未检测到 b23.tv 短链接';
         return;
       }
       const q = p + b23.length;
@@ -139,21 +138,21 @@
     });
     const handleHash = async function () {
       const hash = window.location.hash.slice(1);
-      outputLink.value = 'Getting result...';
+      outputLink.value = '正在获取真实URL...';
       visitButton.href = '/#';
       if (hash === '') {
-        outputLink.value = 'No URL detected!';
+        outputLink.value = '未检测到 b23.tv 短链接';
         return;
       }
       let q = new URL('/api', window.location.origin);
       let search = new URLSearchParams();
       search.append('full', 'b23.tv' + hash);
-      search.append('type', 'text');
+      search.append('status', 200);
       q.search = search.toString();
       await fetch(q)
         .then((response) => {
           if (response.status !== 200) {
-            throw new Error('Network response was not OK');
+            throw new Error('查询API发生错误');
           }
           return response.text();
         })
@@ -162,7 +161,7 @@
           visitButton.href = t;
         })
         .catch(error => {
-          outputLink.value = 'Cannot fetch corresponding URL.';
+          outputLink.value = '未能获取真实URL';
           visitButton.href = '/#';
         });
     };

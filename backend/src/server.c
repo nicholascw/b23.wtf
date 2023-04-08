@@ -342,7 +342,10 @@ void *fetch_b23tv(void *args_) {
   }
   int auto_redirect = args.info->is_bot;
   if (strstr(args.url, "/api?full=") == args.url) {
-    auto_redirect = 1;
+    char *multi_args=strchr(args.url, '&');
+    if(strstr(args.url, "&status=200")) auto_redirect=200;
+    else auto_redirect = 1;
+    if(multi_args) *multi_args='\0';
     char *decoded_url = urldecode(args.url);
     if (decoded_url) {
       char *hostname_in_full = strcasestr(decoded_url, "b23.tv/");
@@ -357,6 +360,7 @@ void *fetch_b23tv(void *args_) {
       if (real_get_location && strlen(real_get_location) > 1 &&
           strlen(real_get_location) <= strlen(args.url))
         strcpy(args.url, real_get_location);
+    if(multi_args) *multi_args='\n';
       free(decoded_url);
     }
   }
@@ -378,11 +382,11 @@ void *fetch_b23tv(void *args_) {
     if (auto_redirect) {
       snprintf(
           args.info->buf, PIPE_BUF,
-          "HTTP/1.1 302 Found\r\n"
+          "HTTP/1.1 %s\r\n"
           "Referrer-Policy: no-referrer\r\n"
           "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n"
-          "Location: %s\r\n\r\n",
-          prepared_response);
+          "Location: %s\r\n\r\n%s\r\n", (auto_redirect==200 ? "200 OK" : "302 Found"),
+          prepared_response, prepared_response);
       L_INFOF("Responded fd=%d 302 Found", args.info->connfd);
     } else {
       snprintf(
