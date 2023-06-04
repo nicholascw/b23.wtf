@@ -200,7 +200,7 @@ char *recv_url(int sockfd, int *redir_flag) {
   char tmp[20];
   memset(tmp, 0, 20);
   strncpy(tmp, spliter + 1, strchr(spliter, '\r') - spliter - 1);
-  L_INFOF("Server responsed: %s", tmp);
+  L_INFOF("Server responded: %s", tmp);
   if (!(strcasestr(spliter, "302 Found") ||
         strcasestr(spliter, "301 Moved Permanently"))) {
     free(buf);
@@ -371,7 +371,7 @@ void *fetch_b23tv(void *args_) {
            "Accept: */*\r\n\r\n",
            args.url);
   if (sendall(sockfd, buf, strlen(buf)) < 0) {
-    L_ERR("Error occured when sending HTTP Request.");
+    L_ERR("Error occurred when sending HTTP Request.");
     return NULL;
   }
   free(buf);
@@ -438,7 +438,7 @@ void *fetch_b23tv(void *args_) {
           "href=\"https://b23.wtf\"><h3 "
           "class=\"float-md-start mb-0\"><img "
           "src=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/master/"
-          "logo.png\" style=\"height:1em; postion:relative\"></a> b23.wtf</h3> "
+          "logo.png\" style=\"height:1em; position:relative\"></a> b23.wtf</h3> "
           "<nav "
           "class=\"nav nav-masthead justify-content-center float-md-end\"> <a "
           "class=\"nav-link\" href=\"https://status.b23.wtf\">服务状态</a> <a "
@@ -553,7 +553,7 @@ int main(int argc, char **argv) {
                             ? sockfd
                             : ((conn_info_t *)events[i].data.ptr)->connfd;
         if (events[i].events & EPOLL_ERRS) {
-          L_ERRF("Error occured on fd=%d, closing...", this_evfd);
+          L_ERRF("Error occurred on fd=%d, closing...", this_evfd);
           conn_info_t *this_conn = events[i].data.ptr;
           if (this_conn->filefd > 0) close(this_conn->filefd);
           free(events[i].data.ptr);
@@ -592,7 +592,7 @@ int main(int argc, char **argv) {
               free(new_conn);
               close(new_fd);
             } else {
-              L_INFOF("fd=%d added %s to epoll succesfully.", new_fd, s);
+              L_INFOF("fd=%d added %s to epoll successfully.", new_fd, s);
             }
           }
         } else {
@@ -855,7 +855,7 @@ int main(int argc, char **argv) {
               free(this_conn);
             }
           } else {
-            L_DEBUG("Unkown epoll events returned.");
+            L_DEBUG("Unknown epoll events returned.");
           }
         }
       }
