@@ -341,12 +341,14 @@ void *fetch_b23tv(void *args_) {
     return NULL;
   }
   int auto_redirect = args.info->is_bot;
-  if (strstr(args.url, "/api?full=") == args.url) {
+  if (strstr(args.url, "/api?") == args.url) {
+    char *full_url = strstr(args.url, "full=");
+    if (!full_url) full_url = args.url;
     char *multi_args=strchr(args.url, '&');
-    if(strstr(args.url, "&status=200")) auto_redirect=200;
+    if(strstr(args.url, "status=200")) auto_redirect=200;
     else auto_redirect = 1;
     if(multi_args) *multi_args='\0';
-    char *decoded_url = urldecode(args.url);
+    char *decoded_url = urldecode(full_url);
     if (decoded_url) {
       char *hostname_in_full = strcasestr(decoded_url, "b23.tv/");
       if (!hostname_in_full)
