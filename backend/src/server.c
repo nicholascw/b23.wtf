@@ -456,7 +456,7 @@ void *fetch_b23tv(void *args_) {
           "class=\"btn btn-info\" href=\"%s\">前往</a> </div></div>"
           "<p>您看到此页面即表示当前短链接包含mid参数，即创建短链接用户的UID。"
           "在此建议您直接分享如上目的地址。<a href=\"/setautoredirect1\" "
-          "class=\"btn btn-light\">今后自动跳转</a></p></main>"
+          "class=\"btn btn-light\" target=\"_blank\">今后自动跳转</a></p></main>"
           "<footer class=\"mt-auto\"> <p>Powered by <a "
           "href=\"https://www.nicholas.wang/\">Nicholas Wang</a>. Project "
           "licensed under GPLv3. <a "
