@@ -23,3 +23,11 @@ Similar services for 小红书: https://xhslink.icu.
 
 
 
+<!---
+
+My own deployment notes:
+
+```bash
+b23all -t "bash -c 'cd ~/b23wtf_pkgbuild; yes | makepkg -cfi && sudo systemctl daemon-reload && sudo systemctl restart b23wtf'"
+```
+--->
