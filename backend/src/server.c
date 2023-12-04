@@ -44,6 +44,7 @@ typedef struct conn_info {
   int is_bot;
   unsigned short len;
   unsigned short offset;
+  pthread_mutex_t lock;
   char buf[PIPE_BUF];
 } conn_info_t;
 
@@ -270,7 +271,7 @@ char *recv_url(int sockfd, int *redir_flag) {
     }
     char *have_params = strchr(url_found, '?');
     if (have_params && !is_taobao) {
-      if (strstr(have_params, "mid=")==NULL) {
+      if (strstr(have_params, "mid=") == NULL) {
         *redir_flag = *redir_flag | 1;
       }
       if (generic_params_filter(have_params) || strlen(have_params) == 1)
@@ -296,6 +297,11 @@ void *fetch_b23tv(void *args_) {
   memcpy(&args, args_, sizeof(args));
   free(args_);
 
+  if (pthread_mutex_trylock(&args.info->lock)) {
+    L_ERR("did not acquire lock");
+    return NULL;
+  }
+
   struct addrinfo hints, *servinfo, *p;
   int rv;
   char s[INET6_ADDRSTRLEN];
@@ -306,6 +312,7 @@ void *fetch_b23tv(void *args_) {
 
   if ((rv = getaddrinfo("bili2233.cn", "80", &hints, &servinfo)) != 0) {
     L_ERRF("getaddrinfo: %s", gai_strerror(rv));
+    pthread_mutex_unlock(&args.info->lock);
     return NULL;
   }
   int sockfd;
@@ -326,6 +333,7 @@ void *fetch_b23tv(void *args_) {
   }
   if (p == NULL) {
     L_ERR("failed to connect.\n");
+    pthread_mutex_unlock(&args.info->lock);
     return NULL;
   }
 
@@ -338,16 +346,19 @@ void *fetch_b23tv(void *args_) {
   char *buf = calloc(MAXDATASIZE, 1);
   if (!buf) {
     L_PERROR();
+    pthread_mutex_unlock(&args.info->lock);
     return NULL;
   }
   int auto_redirect = args.info->is_bot;
   if (strstr(args.url, "/api?") == args.url) {
     char *full_url = strstr(args.url, "full=");
     if (!full_url) full_url = args.url;
-    char *multi_args=strchr(args.url, '&');
-    if(strstr(args.url, "status=200")) auto_redirect=200;
-    else auto_redirect = 1;
-    if(multi_args) *multi_args='\0';
+    char *multi_args = strchr(args.url, '&');
+    if (strstr(args.url, "status=200"))
+      auto_redirect = 200;
+    else
+      auto_redirect = 1;
+    if (multi_args) *multi_args = '\0';
     char *decoded_url = urldecode(full_url);
     if (decoded_url) {
       char *hostname_in_full = strcasestr(decoded_url, "b23.tv/");
@@ -362,7 +373,7 @@ void *fetch_b23tv(void *args_) {
       if (real_get_location && strlen(real_get_location) > 1 &&
           strlen(real_get_location) <= strlen(args.url))
         strcpy(args.url, real_get_location);
-    if(multi_args) *multi_args='\n';
+      if (multi_args) *multi_args = '\n';
       free(decoded_url);
     }
   }
@@ -374,6 +385,7 @@ void *fetch_b23tv(void *args_) {
            args.url);
   if (sendall(sockfd, buf, strlen(buf)) < 0) {
     L_ERR("Error occurred when sending HTTP Request.");
+    pthread_mutex_unlock(&args.info->lock);
     return NULL;
   }
   free(buf);
@@ -387,8 +399,9 @@ void *fetch_b23tv(void *args_) {
           "HTTP/1.1 %s\r\n"
           "Referrer-Policy: no-referrer\r\n"
           "Cache-Control: public, max-age=31536000, stale-if-error=86400\r\n"
-          "Location: %s\r\n\r\n%s\r\n", (auto_redirect & 200 ? "200 OK" : "302 Found"),
-          prepared_response, prepared_response);
+          "Location: %s\r\n\r\n%s\r\n",
+          (auto_redirect & 200 ? "200 OK" : "302 Found"), prepared_response,
+          prepared_response);
       L_INFOF("Responded fd=%d 302 Found", args.info->connfd);
     } else {
       snprintf(
@@ -440,7 +453,8 @@ void *fetch_b23tv(void *args_) {
           "href=\"https://b23.wtf\"><h3 "
           "class=\"float-md-start mb-0\"><img "
           "src=\"https://raw.githubusercontent.com/nicholascw/b23.wtf/master/"
-          "logo.png\" style=\"height:1em; position:relative\"></a> b23.wtf</h3> "
+          "logo.png\" style=\"height:1em; position:relative\"></a> "
+          "b23.wtf</h3> "
           "<nav "
           "class=\"nav nav-masthead justify-content-center float-md-end\"> <a "
           "class=\"nav-link\" href=\"https://status.b23.wtf\">服务状态</a> <a "
@@ -456,7 +470,8 @@ void *fetch_b23tv(void *args_) {
           "class=\"btn btn-info\" href=\"%s\">前往</a> </div></div>"
           "<p>您看到此页面即表示当前短链接包含mid参数，即创建短链接用户的UID。"
           "在此建议您直接分享如上目的地址。<a href=\"/setautoredirect1\" "
-          "class=\"btn btn-light\" target=\"_blank\">今后自动跳转</a></p></main>"
+          "class=\"btn btn-light\" "
+          "target=\"_blank\">今后自动跳转</a></p></main>"
           "<footer class=\"mt-auto\"> <p>Powered by <a "
           "href=\"https://www.nicholas.wang/\">Nicholas Wang</a>. Project "
           "licensed under GPLv3. <a "
@@ -473,6 +488,7 @@ void *fetch_b23tv(void *args_) {
   args.info->len = strlen(args.info->buf);
   args.info->filefd = -1;
   free(prepared_response);
+  pthread_mutex_unlock(&args.info->lock);
   return NULL;
 }
 
@@ -558,6 +574,7 @@ int main(int argc, char **argv) {
           L_ERRF("Error occurred on fd=%d, closing...", this_evfd);
           conn_info_t *this_conn = events[i].data.ptr;
           if (this_conn->filefd > 0) close(this_conn->filefd);
+          pthread_mutex_destroy(&this_conn->lock);
           free(events[i].data.ptr);
           close(this_evfd);
           epoll_ctl(epollfd, EPOLL_CTL_DEL, this_evfd, NULL);
@@ -596,6 +613,7 @@ int main(int argc, char **argv) {
             } else {
               L_INFOF("fd=%d added %s to epoll successfully.", new_fd, s);
             }
+            pthread_mutex_init(&new_conn->lock, NULL);
           }
         } else {
           // existing connection
@@ -613,6 +631,9 @@ int main(int argc, char **argv) {
                 L_ERRF(
                     "Error when receiving HTTP header from fd=%d, closing...",
                     this_evfd);
+                pthread_mutex_lock(&this_conn->lock);
+                pthread_mutex_unlock(&this_conn->lock);
+                pthread_mutex_destroy(&this_conn->lock);
                 free(this_conn);
                 epoll_ctl(epollfd, EPOLL_CTL_DEL, this_evfd, NULL);
                 close(this_evfd);
@@ -801,7 +822,7 @@ int main(int argc, char **argv) {
           } else if (events[i].events & EPOLLOUT) {
             // write out file
             if (this_conn->filefd == -23232323) continue;  // not ready
-            if (this_conn->len > 0) {
+            if (this_conn->len > 0 && this_evfd > 0) {
               int send_ret =
                   send(this_evfd, this_conn->buf,
                        this_conn->len + this_conn->offset, MSG_DONTWAIT);
@@ -821,6 +842,9 @@ int main(int argc, char **argv) {
                       this_conn->offset = 0;
                     } else if (read_ret == 0) {
                       // close connection
+                      pthread_mutex_lock(&this_conn->lock);
+                      pthread_mutex_unlock(&this_conn->lock);
+                      pthread_mutex_destroy(&this_conn->lock);
                       epoll_ctl(epollfd, EPOLL_CTL_DEL, this_evfd, NULL);
                       close(this_evfd);
                       close(this_conn->filefd);
@@ -836,6 +860,9 @@ int main(int argc, char **argv) {
                     // close connection
                     L_INFOF("close fd=%d due to eof@fd=%d.", this_evfd,
                             this_conn->filefd);
+                    pthread_mutex_lock(&this_conn->lock);
+                    pthread_mutex_unlock(&this_conn->lock);
+                    pthread_mutex_destroy(&this_conn->lock);
                     epoll_ctl(epollfd, EPOLL_CTL_DEL, this_evfd, NULL);
                     close(this_evfd);
                     close(this_conn->filefd);
@@ -851,6 +878,9 @@ int main(int argc, char **argv) {
             } else {
               // close connection
               L_INFOF("close fd=%d due to buffer len=0.", this_evfd);
+              pthread_mutex_lock(&this_conn->lock);
+              pthread_mutex_unlock(&this_conn->lock);
+              pthread_mutex_destroy(&this_conn->lock);
               epoll_ctl(epollfd, EPOLL_CTL_DEL, this_evfd, NULL);
               close(this_evfd);
               close(this_conn->filefd);
