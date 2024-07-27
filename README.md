@@ -7,7 +7,7 @@ Here's also a browser userscript for replacing destinations to b23.tv on *.bilib
 
 Identical service is available through: **b23.wtf. b23.tf. b23.icu.**
 
-Similar services for 小红书: https://xhslink.icu.
+Similar services for 小红书: https://xhs.li
 
 ### APIs
 
