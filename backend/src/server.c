@@ -704,8 +704,8 @@ int main(int argc, char **argv) {
                   if (new_debugbuf) {
                     snprintf(new_debugbuf, PIPE_BUF,
                              "HTTP/1.1 200 OK\r\n\r\n"
-                             "full HTTP request:\r\n%s",
-                             this_conn->buf);
+                             "full HTTP request:\r\n%s\r\n%s\r\n",
+                             this_conn->buf,req_start_line_crlf + 1);
                     strcpy(this_conn->buf, new_debugbuf);
                     free(new_debugbuf);
                     this_conn->len = strlen(this_conn->buf);
