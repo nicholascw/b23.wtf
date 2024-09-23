@@ -695,17 +695,23 @@ int main(int argc, char **argv) {
                            "Max-Age=7776000\r\n\r\n"
                            "Set-Cookie done! -- b23.wtf\r\n",
                            *(first_sp + strlen("/setautoredirect")));
-                  L_INFOF("Responded fd=%d 200 OK", this_evfd);
                   this_conn->len = strlen(this_conn->buf);
                   this_conn->filefd = -1;
+                  L_INFOF("Responded fd=%d 200 OK", this_evfd);
                 } else if (strstr(first_sp, "/debug") == first_sp) {
                   L_DEBUGF("debug trace for fd=%d.", this_evfd);
-                 /* snprintf(this_conn->buf, PIPE_BUF,
-                           "HTTP/1.1 200 OK\r\n\r\n"
-                           "full HTTP request:\r\n%s",this_conn->buf);*/
-                  L_INFOF("Responded fd=%d 200 OK", this_evfd);
-                  this_conn->len = strlen(this_conn->buf);
-                  this_conn->filefd = -1;
+                  char *new_debugbuf = malloc(PIPE_BUF);
+                  if (new_debugbuf) {
+                    snprintf(new_debugbuf, PIPE_BUF,
+                             "HTTP/1.1 200 OK\r\n\r\n"
+                             "full HTTP request:\r\n%s",
+                             this_conn->buf);
+                    strcpy(this_conn->buf, new_debugbuf);
+                    free(new_debugbuf);
+                    this_conn->len = strlen(this_conn->buf);
+                    this_conn->filefd = -1;
+                    L_INFOF("Responded fd=%d 200 OK", this_evfd);
+                  }
                 } else if (strlen(first_sp) == 1 && *first_sp == '/') {
                   // return index.html
                   int file_ret = open("./index.html", O_RDONLY | O_NONBLOCK);
