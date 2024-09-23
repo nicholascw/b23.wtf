@@ -99,7 +99,7 @@ char *urldecode(const char *str) {
     L_INFO("No need to escape.");
     return strdup(str);
   }
-  char *new_str = calloc(sizeof(char), len + 1);
+  char *new_str = calloc(len + 1, sizeof(char));
   if (!new_str) {
     L_PERROR();
     L_ERR("Failed to allocate temporary array.")
