@@ -5,7 +5,8 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>b23.wtf</title>
-  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+    integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
   <link rel="icon" type="image/x-icon" href="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/favicon.ico">
   <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/favicon.png">
   <script async defer src="https://buttons.github.io/buttons.js"></script>
@@ -14,26 +15,29 @@
   <meta property="og:title" content="bilibili 短链接追踪信息解决方案">
   <style>
     .bd-placeholder-img {
-            font-size: 1.125rem;
-            text-anchor: middle;
-            -webkit-user-select: none;
-            -moz-user-select: none;
-            user-select: none;
-          }
-          @media (min-width: 768px) {
-            .bd-placeholder-img-lg {
-              font-size: 3.5rem;
-            }
-          }
+      font-size: 1.125rem;
+      text-anchor: middle;
+      -webkit-user-select: none;
+      -moz-user-select: none;
+      user-select: none;
+    }
+
+    @media (min-width: 768px) {
+      .bd-placeholder-img-lg {
+        font-size: 3.5rem;
+      }
+    }
   </style>
   <style>
     body {
       text-shadow: 0 .05rem .1rem rgba(0, 0, 0, .5);
       box-shadow: inset 0 0 5rem rgba(0, 0, 0, .5);
     }
+
     .cover-container {
       max-width: 60em;
     }
+
     .nav-masthead .nav-link {
       padding: .25rem 0;
       font-weight: 700;
@@ -41,14 +45,16 @@
       background-color: transparent;
       border-bottom: .25rem solid transparent;
     }
+
     .nav-masthead .nav-link:hover,
     .nav-masthead .nav-link:focus {
       border-bottom-color: rgba(255, 255, 255, .25);
     }
 
-    .nav-masthead .nav-link + .nav-link {
+    .nav-masthead .nav-link+.nav-link {
       margin-left: 1rem;
     }
+
     .nav-masthead .active {
       color: #fff;
       border-bottom-color: #fff;
@@ -60,7 +66,8 @@
   <div class="cover-container d-flex w-100 h-100 p-3 mx-auto flex-column">
     <header class="mb-auto">
       <div>
-        <h3 class="float-md-start mb-0"><img src="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/logo.png" style="height:1em; position:relative"> b23.wtf</h3>
+        <h3 class="float-md-start mb-0"><img src="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/logo.png"
+            style="height:1em; position:relative"> b23.wtf</h3>
         <nav class="nav nav-masthead justify-content-center float-md-end">
           <!--<a class="nav-link active" aria-current="page" href="#">Home</a>-->
           <a class="nav-link" href="https://status.b23.wtf">服务状态</a>
@@ -68,36 +75,42 @@
         </nav>
     </header>
     <main class="px-3">
-      <h2>无痛去除 b23.tv 追踪信息的解决方案。</h2>
-      <p><img src="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/demo.png" style="width:100%; position:relative;padding-bottom:1em"></p>
+      <h2>在访问时去除 bilibili 短链接追踪信息的解决方案。</h2>
+      <p><img src="https://raw.githubusercontent.com/nicholascw/b23.wtf/master/demo.png"
+          style="width:100%; position:relative;padding-bottom:1em"></p>
       <p class="lead">将 "tv" 改为 "tf" 后访问，或将短链接粘贴在下方。</p>
       <div class="paste-input">
-        <input
-          id="paste-input"
-          name="paste-input"
-          class="form-control"
-          title="将 b23.tv 短链接粘贴到此处 ..."
-          placeholder="将 b23.tv 短链接粘贴到此处 ..."
-          spellcheck="false"
-          style="text-align:center"
-          required></input>
+        <input id="paste-input" name="paste-input" class="form-control" title="将 bilibili 短链接粘贴到此处 ..."
+          placeholder="将 bilibili 短链接粘贴到此处 ..." spellcheck="false" style="text-align:center" required></input>
       </div>
-      <p><div class="link-result input-group input-group-lg">
+      <p>
+      <div class="link-result input-group input-group-lg">
         <input type="text" class="form-control" value="" id="link-result" readonly="">
         <div class="input-group-append">
-          <button class="btn btn-secondary" type="button">复制<br><span class="badge badge-success" style="display: none;">已复制</span></button>
+          <button class="btn btn-secondary" type="button">复制<br><span class="badge badge-success"
+              style="display: none;">已复制</span></button>
           <a class="btn btn-info" id="visit-link" href="/#">前往</a>
         </div>
-      </div></p>
-      <p style="position:relative; margin: 3em 3em;"><span style="border-radius: 5px; background: rgba(233,233,233,0.3); padding: 0.5em;">当前节点: $(cat /etc/hostname).b23.wtf</span></p>
-      <p><span style="border-radius: 5px; background: rgba(147,234,245,0.45);box-shadow:  0px 0px 7px 3px rgba(193,241,245, 0.8); padding: 0.5em"><a style="color:#f5c1d2" href="https://xhs.li">xhs.li</a> 提供了面向小红书短链接的相似服务。</span></p>
+      </div>
+      </p>
+      <p style="position:relative; margin: 3em 3em;"><span
+          style="border-radius: 5px; background: rgba(233,233,233,0.3); padding: 0.5em;">当前节点: $(cat /etc/hostname).b23.wtf</span></p>
+      <!--<p><span
+          style="border-radius: 5px; background: rgba(147,234,245,0.45);box-shadow:  0px 0px 7px 3px rgba(193,241,245, 0.8); padding: 0.5em"><a
+            style="color:#f5c1d2" href="https://xhs.li">xhs.li</a> 提供了面向小红书短链接的相似服务。</span></p>-->
     </main>
     <footer class="mt-auto">
-      <p>This service is available thanks to <a href="https://www.nicho1as.wang/">Nicholas Wang</a>, <a href="https://github.com/nicholascw/b23.wtf/graphs/contributors">other contributors</a>, and <a href="https://github.com/sponsors/nicholascw">sponsors</a>.
+      <p>This service is available thanks to <a href="https://www.nicho1as.wang/">Nicholas Wang</a>, <a
+          href="https://github.com/nicholascw/b23.wtf/graphs/contributors">other contributors</a>, and <a
+          href="https://github.com/sponsors/nicholascw">sponsors</a>.
         <br>Project source is licensed under GPLv3. <br><br>
         <!-- <a href="https://github.com/nicholascw/b23.wtf">Source</a> -->
-        <a class="github-button" href="https://github.com/nicholascw/b23.wtf" data-color-scheme="no-preference: dark_high_contrast; light: dark_high_contrast; dark: dark_high_contrast;" data-icon="octicon-star" data-show-count="true" aria-label="Star nicholascw/b23.wtf on GitHub">Star</a>
-        <a class="github-button" href="https://github.com/sponsors/nicholascw" data-color-scheme="no-preference: dark_high_contrast; light: dark_high_contrast; dark: dark_high_contrast;" data-icon="octicon-heart" aria-label="Sponsor @nicholascw on GitHub">Sponsor</a>
+        <a class="github-button" href="https://github.com/nicholascw/b23.wtf"
+          data-color-scheme="no-preference: dark_high_contrast; light: dark_high_contrast; dark: dark_high_contrast;"
+          data-icon="octicon-star" data-show-count="true" aria-label="Star nicholascw/b23.wtf on GitHub">Star</a>
+        <a class="github-button" href="https://github.com/sponsors/nicholascw"
+          data-color-scheme="no-preference: dark_high_contrast; light: dark_high_contrast; dark: dark_high_contrast;"
+          data-icon="octicon-heart" aria-label="Sponsor @nicholascw on GitHub">Sponsor</a>
       </p>
     </footer>
   </div>
@@ -118,22 +131,31 @@
         setTimeout(() => { copiedBadge.style.display = 'none'; }, 2000);
       });
     });
-    const b23 = 'https://b23.tv';
-    outputLink.value = '未检测到 b23.tv 短链接';
+    const b23 = 'b23.tv/';
+    const bili2233 = 'bili2233.cn/';
+    outputLink.value = '未检测到 bilibili 短链接';
     pasteInput.addEventListener('input', () => {
       const s = pasteInput.value;
-      const p = s.indexOf(b23);
+      let p = -1;
+      let p_l = 0;
+      if (s.indexOf(b23) >= 0) {
+        p = s.indexOf(b23);
+        p_l = b23.length;
+      } else if (s.indexOf(bili2233) >= 0) {
+        p = s.indexOf(bili2233);
+        p_l = bili2233.length;
+      }
       if (p === -1) {
         window.location.hash = '';
-        outputLink.value = '未检测到 b23.tv 短链接';
+        outputLink.value = '未检测到 bilibili 短链接';
         return;
       }
-      const q = p + b23.length;
+      const q = p + p_l - 1;
       let i = q, code;
       do {
         i += 1;
         code = s.charCodeAt(i);
-      } while(
+      } while (
         (code > 47 && code < 58)      // numeric (0-9)
         || (code > 64 && code < 91)   // upper alpha (A-Z)
         || (code > 96 && code < 123)  // lower alpha (a-z)
@@ -142,10 +164,11 @@
     });
     const handleHash = async function () {
       const hash = window.location.hash.slice(1);
+      console.log(hash);
       outputLink.value = '正在获取真实URL...';
       visitButton.href = '/#';
       if (hash === '') {
-        outputLink.value = '未检测到 b23.tv 短链接';
+        outputLink.value = '未检测到 bilibili 短链接';
         return;
       }
       let q = new URL('/api', window.location.origin);
